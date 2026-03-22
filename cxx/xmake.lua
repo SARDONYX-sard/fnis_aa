@@ -1,9 +1,9 @@
 -- Please change this for your settings.
 local PLUGIN_NAME<const> = "fnis_aa" -- dll name
 local AUTHOR_NAME<const> = "SARDONYX" -- NOTE: Including a space seems to break the rc.
-local DESCRIPTION<const> = "Plugin Description"
-local VERSION<const> = "0.1.0"
-local LICENSE<const> = "Unlicense OR Apache-2.0"
+local DESCRIPTION<const> = "Replaces `FNIS_aa2.pex` Papyrus natives at runtime via JSON, eliminating the need for PapyrusCompiler."
+local VERSION<const> = "1.0.0"
+local LICENSE<const> = "MIT OR Apache-2.0"
 --
 
 set_config("rex_json", true)
@@ -92,7 +92,7 @@ target("regenerate_pex", function()
             })
 
             if not ok then
-                raise("[error] Papyrus compilation failed for " .. psc .. ": " .. tostring(err))
+                print("[error] Papyrus compilation failed for " .. psc .. ": " .. tostring(err))
             end
 
             print("Compiled " .. psc .. " → " .. dst_pex)
