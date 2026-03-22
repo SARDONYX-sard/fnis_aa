@@ -14,7 +14,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
 
@@ -47,12 +47,12 @@ jobs:
           }
 
       - name: Build
-        run: xmake build -y
+        run: xmake build -y ${{ steps.plugin.outputs.PLUGIN_NAME }}
       - name: Install
         run: xmake install -o ./build/artifact ${{ steps.plugin.outputs.PLUGIN_NAME }}
 
       - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.plugin.outputs.PLUGIN_NAME }}
           path: |

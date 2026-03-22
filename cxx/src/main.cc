@@ -1,7 +1,5 @@
-#include "cmd_cheat/cmd_model.hh"
 #include "core.hh"
-#include "persistence.hh"
-#include "ui.hh"
+#include "fnis_aa2.hh"
 
 namespace {
     static void skse_listener(SKSE::MessagingInterface::Message* a_msg) {
@@ -9,18 +7,13 @@ namespace {
         case SKSE::MessagingInterface::kPostLoadGame:  // Fired after loading a game save.
             {
                 skse_plugin_core::init();
-                ui::Register();
-
-                skyrim_cheat::persistence::LoadAll();
-                cmd_cheat::model::OnLoadGame();
                 return;
             }
 
         case SKSE::MessagingInterface::kNewGame:     // Fired when starting a new game.
         case SKSE::MessagingInterface::kDataLoaded:  // Fired after all game data has loaded.
             {
-                skyrim_cheat::persistence::LoadAll();
-                cmd_cheat::model::OnGameLoaded();
+                aa_registry::OnLoad();
                 return;
             }
 
@@ -46,6 +39,7 @@ extern "C" __declspec(dllexport) bool
     }
 
     msg->RegisterListener("SKSE", ::skse_listener);
+    SKSE::GetPapyrusInterface()->Register(FNIS_aa2::Register);
 
     return true;
 }
