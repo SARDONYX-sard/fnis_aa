@@ -46,8 +46,7 @@ jobs:
           }
 
       - name: Build
-        run: xmake build -y
-
+        run: xmake build -y ${{ steps.plugin.outputs.PLUGIN_NAME }}
       - name: Install
         run: xmake install -o ./build/artifact ${{ steps.plugin.outputs.PLUGIN_NAME }}
 
