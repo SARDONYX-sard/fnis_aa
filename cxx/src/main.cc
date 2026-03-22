@@ -33,6 +33,8 @@ extern "C" __declspec(dllexport) bool
     SKSEPlugin_Load(const SKSE::LoadInterface* a_interface) {
     SKSE::Init(a_interface);
 
+    spdlog::set_level(spdlog::level::trace);
+
     auto msg = SKSE::GetMessagingInterface();
     if (msg == nullptr) {
         return false;

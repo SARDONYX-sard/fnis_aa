@@ -5,7 +5,9 @@ namespace aa_registry {
         std::filesystem::path dir = "Data/SKSE/Plugins/fnis_aa";
         const auto            config_path = dir / "config.json";
 
-        if (!g_registry.LoadFromJson(config_path)) {
+        if (g_registry.LoadFromJson(config_path)) {
+            spdlog::info("json loaded.");
+        } else {
             spdlog::error("Failed to load json from: {}", config_path.string());
         }
     }
