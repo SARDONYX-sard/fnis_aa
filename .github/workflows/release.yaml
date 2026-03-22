@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6.0.1
+        with:
+          submodules: "recursive"
+
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: "3.0.6"
+          actions-cache-folder: ".xmake-cache"
+          actions-cache-key: ${{ runner.os }}-xmake-release-cache-
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-deps
+        with:
+          platform: windows
+          build_profile: release
+
+      - name: Build Rust static lib
+        run: cargo build --release
+
+      - name: Extract plugin info from xmake.lua
+        id: plugin
+        shell: pwsh
+        run: |
+          $content = Get-Content cxx/xmake.lua -Raw
+          $pattern = 'local\s+PLUGIN_NAME<[^>]*>\s*=\s*"([^"]+)"'
+
+          if ($content -match $pattern) {
+            "PLUGIN_NAME=$($matches[1])" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Error "PLUGIN_NAME not found in cxx/xmake.lua"
+            exit 1
+          }
+
+      - name: Build
+        run: xmake build -y
+
+      - name: Install
+        run: xmake install -o ./build/artifact ${{ steps.plugin.outputs.PLUGIN_NAME }}
+
+      - name: Package artifact
+        shell: pwsh
+        run: |
+          $name = "${{ steps.plugin.outputs.PLUGIN_NAME }}"
+          Compress-Archive -Path ./build/artifact/* -DestinationPath "$name-windows.zip"
+
+      - name: Create GitHub Release (gh)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create `
+            "${{ github.ref_name }}" `
+            "${{ steps.plugin.outputs.PLUGIN_NAME }}-windows.zip" `
+            --title "${{ steps.plugin.outputs.PLUGIN_NAME }} ${{ github.ref_name }}" `
+            --notes "Automated release for ${{ github.ref_name }}"

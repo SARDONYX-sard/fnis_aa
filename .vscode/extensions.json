@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "llvm-vs-code-extensions.vscode-clangd",
+    "editorconfig.editorconfig",
+    "streetsidesoftware.code-spell-checker",
+    "belfz.search-crates-io",
+    "rust-lang.rust-analyzer",
+    "tboox.xmake-vscode"
+  ]
+}

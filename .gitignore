@@ -1,0 +1,7 @@
+# Rust
+target/
+
+# C++
+.cache/
+.xmake/
+build/

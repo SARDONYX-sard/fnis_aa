@@ -1,0 +1,34 @@
+name: "Setup Deps"
+description: "Performs common setup tasks such as checkout, rust toolchain, caching, and frontend setup."
+
+inputs:
+  platform:
+    description: "GitHub runner platform"
+    required: true
+  build_profile:
+    description: "Rust build profile"
+    required: false
+    default: "release"
+  cache_key_suffix:
+    description: "Cache key suffix"
+    required: false
+    default: ""
+
+outputs:
+  platform:
+    description: "The platform used"
+    value: ${{ inputs.platform }}
+  build_profile:
+    description: "The build profile used"
+    value: ${{ inputs.build_profile }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Rust setup
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Rust cache
+      uses: Swatinem/rust-cache@v2.7.8
+      with:
+        prefix-key: cargo-${{ inputs.build_profile }}-${{ inputs.platform }}-${{ inputs.cache_key_suffix }}

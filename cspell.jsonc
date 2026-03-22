@@ -1,0 +1,23 @@
+{
+  "words": [
+    "allextra",
+    "bugprone",
+    "commonlibsse",
+    "cppcoreguidelines",
+    "cxxbridge",
+    "defaultmode",
+    "depfiles",
+    "headerfiles",
+    "includedirs",
+    "linkdirs",
+    "NOLINTNEXTLINE",
+    "ntdll",
+    "pcxxheader",
+    "releasedbg",
+    "skse",
+    "Skyrim",
+    "userenv",
+    "vararg",
+    "xmake"
+  ]
+}

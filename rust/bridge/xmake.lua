@@ -1,0 +1,5 @@
+target("rust_bridge", function ()
+    on_build(function ()
+        os.exec("cargo build --release")
+    end)
+end)

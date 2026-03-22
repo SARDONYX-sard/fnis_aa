@@ -1,0 +1,121 @@
+[workspace.package]
+version = "0.0.0"
+description = "A SKSE plugin written in Rust"
+categories = ["games"]
+keywords = ["skyrim"]
+authors = [""]
+license = "Unlicense OR Apache-2.0"
+repository = "https://github.com/SARDONYX-sard/skse_plugin_rust_bridge_template"
+readme = "README.md"
+edition = "2024"
+rust-version = "1.91"
+
+[workspace]
+members = ["rust/bridge"]
+resolver = "3"
+
+[workspace.dependencies]
+bridge = { path = "rust/bridge" }
+
+# NOTE: Set this to lto because there is a part of CI that assumes release dir, and use lto only when the tag is typed.
+[profile.release]
+# NOTE: Optimizing to the limit reduces the size of the binary, but for some reason,
+# the second async fn cannot be executed, resulting in an error, so it is turned off.
+# codegen-units = 1
+debug = false
+# lto = true
+opt-level = 3
+panic = 'abort'
+strip = true
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+
+# allow list
+derive_partial_eq_without_eq = "allow"
+future_not_send = "allow"
+multiple_crate_versions = "allow"
+option_if_let_else = "allow"
+pub_with_shorthand = "allow"
+redundant_pub_crate = "allow"
+result_large_err = "allow"
+
+# custom deny list
+char_lit_as_u8 = "deny"
+checked_conversions = "deny"
+clone_on_ref_ptr = "deny"
+cognitive_complexity = "deny"
+debug_assert_with_mut_call = "deny"
+disallowed_script_idents = "deny"
+doc_link_with_quotes = "deny"
+empty_enum = "deny"
+empty_line_after_outer_attr = "deny"
+empty_structs_with_brackets = "deny"
+expect_used = "deny"
+expl_impl_clone_on_copy = "deny"
+explicit_deref_methods = "deny"
+explicit_into_iter_loop = "deny"
+fallible_impl_from = "deny"
+filetype_is_file = "deny"
+filter_map_next = "deny"
+flat_map_option = "deny"
+float_cmp = "deny"
+float_cmp_const = "deny"
+float_equality_without_abs = "deny"
+fn_params_excessive_bools = "deny"
+fn_to_numeric_cast_any = "deny"
+from_iter_instead_of_collect = "deny"
+if_let_mutex = "deny"
+implicit_clone = "deny"
+imprecise_flops = "deny"
+inefficient_to_string = "deny"
+invalid_upcast_comparisons = "deny"
+items_after_test_module = "deny"
+large_digit_groups = "deny"
+large_stack_arrays = "deny"
+large_types_passed_by_value = "deny"
+let_unit_value = "deny"
+linkedlist = "deny"
+lossy_float_literal = "deny"
+macro_use_imports = "deny"
+manual_ok_or = "deny"
+map_flatten = "deny"
+map_unwrap_or = "deny"
+match_same_arms = "deny"
+match_wild_err_arm = "deny"
+match_wildcard_for_single_variants = "deny"
+mem_forget = "deny"
+missing_const_for_fn = "deny"
+missing_enforced_import_renames = "deny"
+missing_errors_doc = "deny"
+missing_panics_doc = "deny"
+mut_mut = "deny"
+mutex_integer = "deny"
+needless_borrow = "deny"
+needless_continue = "deny"
+needless_for_each = "deny"
+option_option = "deny"
+path_buf_push_overwrite = "deny"
+ptr_as_ptr = "deny"
+rc_mutex = "deny"
+ref_option_ref = "deny"
+rest_pat_in_fully_bound_structs = "deny"
+same_functions_in_if_condition = "deny"
+semicolon_if_nothing_returned = "deny"
+single_match_else = "deny"
+string_add = "deny"
+string_add_assign = "deny"
+string_lit_as_bytes = "deny"
+suspicious_operation_groupings = "deny"
+trait_duplication_in_bounds = "deny"
+unnested_or_patterns = "deny"
+unseparated_literal_suffix = "deny"
+unused_self = "deny"
+unwrap_in_result = "deny"
+unwrap_used = "deny"
+useless_let_if_seq = "deny"
+useless_transmute = "deny"
+verbose_file_reads = "deny"
+wildcard_dependencies = "deny"

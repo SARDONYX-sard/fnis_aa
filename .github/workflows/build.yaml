@@ -1,0 +1,59 @@
+name: Build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6.0.1
+        with:
+          submodules: "recursive"
+
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: "3.0.6"
+          actions-cache-folder: ".xmake-cache"
+          actions-cache-key: ${{ runner.os }}-xmake-build-cache-
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-deps
+        with:
+          platform: ${{ matrix.platform }}
+          build_profile: release
+      - name: build Rust static lib
+        run: cargo build --release
+
+      - name: Extract plugin info from xmake.lua
+        id: plugin
+        shell: pwsh
+        run: |
+          $content = Get-Content cxx/xmake.lua -Raw
+          $pattern = 'local\s+PLUGIN_NAME<[^>]*>\s*=\s*"([^"]+)"'
+
+          if ($content -match $pattern) {
+            "PLUGIN_NAME=$($matches[1])" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Error "PLUGIN_NAME not found in cxx/xmake.lua"
+            exit 1
+          }
+
+      - name: Build
+        run: xmake build -y
+      - name: Install
+        run: xmake install -o ./build/artifact ${{ steps.plugin.outputs.PLUGIN_NAME }}
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: ${{ steps.plugin.outputs.PLUGIN_NAME }}
+          path: |
+            ./build/artifact/**

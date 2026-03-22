@@ -1,0 +1,13 @@
+{
+  "files.exclude": {
+    ".cache": true
+    // ".xmake": true
+  },
+  "files.watcherExclude": {
+    "**/.cache/**": true,
+    "**/.git/objects/**": true,
+    "**/.xmake/**": true,
+    "**/build/**": true
+  },
+  "xmake.compileCommandsDirectory": "build"
+}
