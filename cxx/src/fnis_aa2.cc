@@ -117,6 +117,11 @@ namespace FNIS_aa2 {
             return result;
         }
 
+        // Replace `String Function get() Global`
+        static RE::BSFixedString GetVersion(RE::StaticFunctionTag*) {
+            return aa_registry::g_registry.fnis_version.c_str();
+        }
+
     }
 
     bool Register(RE::BSScript::IVirtualMachine* vm) {

@@ -1,4 +1,6 @@
 #include "core.hh"
+
+#include "aa_registory.hh"
 #include "fnis_aa2.hh"
 
 namespace {
