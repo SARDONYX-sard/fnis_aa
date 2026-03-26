@@ -15,15 +15,18 @@ pub(crate) mod ffi {
         pub fn spdlog_error(msg: &str);
 
         pub fn get_calendar_time() -> String;
+
+        /// # Example
+        ///
+        /// ```rust,no_compile
+        /// ffi::message_box("Hello from Rust!");
+        /// ```
         pub fn message_box(msg: &str);
     }
 }
 
-pub fn bridge_init() {
-    crate::log_trace!("[rust] bridge_init()");
-
-    crate::log_info!("[From Rust] Current time: {}", ffi::get_calendar_time());
-    // ffi::message_box("Hello from Rust!");
+fn bridge_init() {
+    crate::log_trace!("bridge_init() has been called.");
 }
 
 #[cfg(test)]

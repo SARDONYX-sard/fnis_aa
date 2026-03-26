@@ -5,3 +5,6 @@ target/
 .cache/
 .xmake/
 build/
+
+skyrimse.ppj
+compile_commands.json

@@ -25,7 +25,13 @@
 #[macro_export]
 macro_rules! log_trace {
     ($($arg:tt)*) => {{
-        $crate::bridge::ffi::spdlog_trace(&format!($($arg)*));
+        $crate::bridge::ffi::spdlog_trace(&format!(
+            "TRACE [{}] {}:{}: {}",
+            module_path!(),
+            file!(),
+            line!(),
+            format_args!($($arg)*)
+        ));
     }};
 }
 
@@ -40,7 +46,13 @@ macro_rules! log_trace {
 #[macro_export]
 macro_rules! log_debug {
     ($($arg:tt)*) => {{
-        $crate::bridge::ffi::spdlog_debug(&format!($($arg)*));
+        $crate::bridge::ffi::spdlog_debug(&format!(
+            "DEBUG [{}] {}:{}: {}",
+            module_path!(),
+            file!(),
+            line!(),
+            format_args!($($arg)*)
+        ));
     }};
 }
 
@@ -55,7 +67,13 @@ macro_rules! log_debug {
 #[macro_export]
 macro_rules! log_info {
     ($($arg:tt)*) => {{
-        $crate::bridge::ffi::spdlog_info(&format!($($arg)*));
+        $crate::bridge::ffi::spdlog_info(&format!(
+            "INFO [{}] {}:{}: {}",
+            module_path!(),
+            file!(),
+            line!(),
+            format_args!($($arg)*)
+        ));
     }};
 }
 
@@ -70,7 +88,13 @@ macro_rules! log_info {
 #[macro_export]
 macro_rules! log_warn {
     ($($arg:tt)*) => {{
-        $crate::bridge::ffi::spdlog_warn(&format!($($arg)*));
+        $crate::bridge::ffi::spdlog_warn(&format!(
+            "WARN [{}] {}:{}: {}",
+            module_path!(),
+            file!(),
+            line!(),
+            format_args!($($arg)*)
+        ));
     }};
 }
 
@@ -85,6 +109,12 @@ macro_rules! log_warn {
 #[macro_export]
 macro_rules! log_error {
     ($($arg:tt)*) => {{
-        $crate::bridge::ffi::spdlog_error(&format!($($arg)*));
+        $crate::bridge::ffi::spdlog_error(&format!(
+            "ERROR [{}] {}:{}: {}",
+            module_path!(),
+            file!(),
+            line!(),
+            format_args!($($arg)*)
+        ));
     }};
 }

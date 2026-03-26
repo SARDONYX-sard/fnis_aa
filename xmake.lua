@@ -1,5 +1,4 @@
 set_project("skse_plugin_rust_bridge")
-set_version("0.1.0")
 set_license("Unlicense OR Apache-2.0")
 
 -- Global settings

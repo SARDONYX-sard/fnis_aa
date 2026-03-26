@@ -6,6 +6,9 @@ local VERSION<const> = "1.0.1"
 local LICENSE<const> = "MIT OR Apache-2.0"
 --
 
+set_version(VERSION)
+set_license(LICENSE)
+
 set_config("rex_json", true)
 set_config("rex_toml", true)
 includes("../extern/CommonLibVR_NG")
@@ -15,6 +18,8 @@ includes("../rust/bridge")
 target(PLUGIN_NAME, function ()
     add_deps("commonlibsse-ng")
     add_deps("rust_bridge")
+
+    add_defines("SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE")
 
     add_includedirs("include")
     add_headerfiles("include/**.hh")
@@ -38,8 +43,6 @@ target(PLUGIN_NAME, function ()
     --
 
     -- This setting automatically creates `SKSE/Plugins/<target_NAME>.dll` during `xmake install`.
-    set_version(VERSION)
-    set_license(LICENSE)
     add_rules("commonlibsse-ng.plugin", {
         name = PLUGIN_NAME,
         author = AUTHOR_NAME,
@@ -64,27 +67,30 @@ target("regenerate_pex", function()
     on_build(function (target)
         local skyrim_dir  = os.getenv("SKYRIM_DIR") or "D:/STEAM/steamapps/common/Skyrim Special Edition"
         local compiler    = path.join(skyrim_dir, "Papyrus Compiler/PapyrusCompiler.exe")
-        local skse_source = path.join(skyrim_dir, "Data/Scripts/Source")
+        local skse_source = path.join(skyrim_dir, "Data/Source/Scripts")
+        local flags_file  = path.join(skse_source, "TESV_Papyrus_Flags.flg")
         local src_dir     = path.join(os.scriptdir(), "papyrus")
         local dst_dir     = path.join(os.scriptdir(), "papyrus/prebuilt")
 
-        local psc_files = {
-            "FNIS_aa2.psc",
-            "FNISVersionGenerated.psc",
-        }
+        if not os.isdir(skse_source) then
+            print("[error] Non exits scripts dir: " .. skse_source)
+        end
 
         if not os.isfile(compiler) then
-            raise("[error] Papyrus compiler not found at: " .. compiler)
+            print("[error] Papyrus compiler not found at: " .. compiler)
         end
 
         os.mkdir(dst_dir)
 
+        local psc_files = os.files(path.join(src_dir, "*.psc"))
+
         for _, psc in ipairs(psc_files) do
-            local src_psc = path.join(src_dir, psc)
-            local dst_pex = path.join(dst_dir, psc:gsub("%.psc$", ".pex"))
+            local file_name = path.filename(psc)
+            local src_psc = path.join(src_dir, file_name)
 
             local ok, err = os.execv(compiler, {
                 src_psc,
+                "-f=" .. flags_file,
                 "-output=" .. dst_dir,
                 "-import=" .. src_dir .. ";" .. skse_source,
                 "-optimize",
@@ -95,6 +101,7 @@ target("regenerate_pex", function()
                 print("[error] Papyrus compilation failed for " .. psc .. ": " .. tostring(err))
             end
 
+            local dst_pex = path.join(dst_dir, file_name:gsub("%.psc$", ".pex"))
             print("Compiled " .. psc .. " → " .. dst_pex)
         end
     end)
@@ -111,12 +118,12 @@ target("test_fnis_aa", function()
 
     add_includedirs("src", "include")
     set_pcxxheader("tests/pch.hh")
-    add_files("src/aa_registory.cc")
 
-    add_files("tests/test_aa.cc")
+    add_files("src/config.cc")
+    add_files("tests/test_config.cc")
 
     -- xmake test
-    add_tests("aa_registry", {
+    add_tests("config", {
         run_timeout = 10000,
         trim_output = false
     })
