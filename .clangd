@@ -1,5 +1,5 @@
 CompileFlags:
-  CompilationDatabase: "build"
+  CompilationDatabase: ".vscode"
   Add:
     # See: https://github.com/llvm/llvm-project/pull/160030/changes
     - "/std:c++latest"
@@ -26,6 +26,7 @@ Diagnostics:
         #
         bugprone-easily-swappable-parameters,
         cppcoreguidelines-avoid-c-arrays,
+        cppcoreguidelines-avoid-do-while,
         cppcoreguidelines-avoid-magic-numbers,
         cppcoreguidelines-avoid-non-const-global-variables,
         cppcoreguidelines-narrowing-conversions, # duplicated bugprone lint

@@ -8,6 +8,5 @@
     "**/.git/objects/**": true,
     "**/.xmake/**": true,
     "**/build/**": true
-  },
-  "xmake.compileCommandsDirectory": "build"
+  }
 }

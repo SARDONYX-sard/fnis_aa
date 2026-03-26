@@ -1,4 +1,3 @@
-// alt_group_table.hh
 #pragma once
 #include <array>
 #include <cstdint>
@@ -6,7 +5,7 @@
 
 struct AAGroupInfo {
     std::string_view name;
-    uint32_t         id;
+    int32_t          id;
 };
 
 // NOTE: Sorting by name enables binary search

@@ -1,21 +1,21 @@
-#include "aa_registory.hh"
+#include "config.hh"
 
 namespace FNIS_aa2 {
     namespace {
-        using namespace ::aa_registry;
+        using namespace ::config;
 
         /// Replaces `Int Function GetAAnumber(Int listType) Global`
         /// listType=0 -> mod count, listType=1 -> set count, listType=2 -> crc
         int32_t GetAAnumber(RE::StaticFunctionTag*, int32_t listType) {
             switch (listType) {
             case 0:
-                spdlog::debug("GetAAnumber({}) -> Mod count: {}", listType, g_config.mod_count);
+                SPDLOG_DEBUG("GetAAnumber({}) -> Mod count: {}", listType, g_config.mod_count);
                 return g_config.mod_count;
             case 1:
-                spdlog::debug("GetAAnumber({}) -> Set count: {}", listType, g_config.set_count);
+                SPDLOG_DEBUG("GetAAnumber({}) -> Set count: {}", listType, g_config.set_count);
                 return g_config.set_count;
             default:
-                spdlog::debug("GetAAnumber({}) -> crc: {}", listType, g_config.crc);
+                SPDLOG_DEBUG("GetAAnumber({}) -> crc: {}", listType, g_config.crc);
                 return g_config.crc;
             }
         }
@@ -26,7 +26,7 @@ namespace FNIS_aa2 {
         /// - Every time an FNIS Alternate Animation mod is added, it replaces the values starting from `mm0`.
         static std::vector<RE::BSFixedString> GetAAprefixList(
             RE::StaticFunctionTag*, int32_t nMods, RE::BSFixedString mod, bool debugOutput) {
-            spdlog::debug("GetAAprefixList(nMods={}, mod={}, debugOutput={}) has been called.",
+            SPDLOG_DEBUG("GetAAprefixList(nMods={}, mod={}, debugOutput={}) has been called.",
                 nMods, mod.c_str(), debugOutput);
             return g_config.prefix_list;
         }
@@ -49,9 +49,21 @@ namespace FNIS_aa2 {
         /// causing all animation variable sets for that group to be no-ops.
         static std::vector<RE::BSFixedString> GetAAsetList(
             RE::StaticFunctionTag*, int32_t nSets, RE::BSFixedString mod, bool debugOutput) {
-            spdlog::debug("GetAAsetList(nSets={}, mod={}, debugOutput={}) has been called.",
+            SPDLOG_DEBUG("GetAAsetList(nSets={}, mod={}, debugOutput={}) has been called.",
                 nSets, mod.c_str(), debugOutput);
-            return g_config.set_list;
+
+            std::vector<RE::BSFixedString> result(128);
+            const auto&                    sets = g_config.set_list;
+
+            const size_t count = std::min<size_t>(nSets, sets.size());
+            result.reserve(count);
+
+            for (size_t i = 0; i < count; ++i) {
+                // e.g.,: mod:1, group:2, base:3 -> `010203`
+                result.emplace_back(sets[i].to_encoded_string());
+            }
+
+            return result;
         }
 
         // Replace `String Function get() Global`
@@ -61,14 +73,15 @@ namespace FNIS_aa2 {
     }
 
     bool Register(RE::BSScript::IVirtualMachine* vm) {
-        spdlog::info("Registering FNIS_aa2 native overrides");
+        SPDLOG_INFO("Registering FNIS_aa2 native.");
+
         vm->RegisterFunction("GetAAnumber", "FNIS_aa2", GetAAnumber);
         vm->RegisterFunction("GetAAprefixList", "FNIS_aa2", GetAAprefixList);
         vm->RegisterFunction("GetAAsetList", "FNIS_aa2", GetAAsetList);
 
         vm->RegisterFunction("get", "FNISVersionGenerated", GetVersion);
 
-        spdlog::info("FNIS_aa2 native overrides registered");
+        SPDLOG_INFO("FNIS_aa2 native overrides registered");
         return true;
     }
 
