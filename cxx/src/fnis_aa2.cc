@@ -1,31 +1,22 @@
 #include "aa_registory.hh"
 
-#include "./alt_group_table.hh"
-
 namespace FNIS_aa2 {
     namespace {
+        using namespace ::aa_registry;
+
         /// Replaces `Int Function GetAAnumber(Int listType) Global`
-        /// listType=0 → mod count, listType=1 → set count, listType=2 → crc
-        static int32_t GetAAnumber(RE::StaticFunctionTag*, int32_t listType) {
+        /// listType=0 -> mod count, listType=1 -> set count, listType=2 -> crc
+        int32_t GetAAnumber(RE::StaticFunctionTag*, int32_t listType) {
             switch (listType) {
             case 0:
-                {
-                    const auto count = static_cast<int32_t>(aa_registry::g_registry.mods.size());
-                    spdlog::debug("GetAAnumber(0) → mod count: {}", count);
-                    return count;
-                }
+                spdlog::debug("GetAAnumber({}) -> Mod count: {}", listType, g_config.mod_count);
+                return g_config.mod_count;
             case 1:
-                {
-                    const auto count = static_cast<int32_t>(aa_registry::g_registry.total_set_count());
-                    spdlog::debug("GetAAnumber(1) → set count: {}", count);
-                    return count;
-                }
+                spdlog::debug("GetAAnumber({}) -> Set count: {}", listType, g_config.set_count);
+                return g_config.set_count;
             default:
-                {
-                    const auto crc = static_cast<int32_t>(aa_registry::g_registry.crc);
-                    spdlog::debug("GetAAnumber(2) → crc: {}", crc);
-                    return crc;
-                }
+                spdlog::debug("GetAAnumber({}) -> crc: {}", listType, g_config.crc);
+                return g_config.crc;
             }
         }
 
@@ -34,19 +25,10 @@ namespace FNIS_aa2 {
         /// - The array from `mm0` to `mm30` is the default value.
         /// - Every time an FNIS Alternate Animation mod is added, it replaces the values starting from `mm0`.
         static std::vector<RE::BSFixedString> GetAAprefixList(
-            RE::StaticFunctionTag*,
-            int32_t           nMods,
-            RE::BSFixedString mod,
-            bool              debugOutput) {
-            spdlog::debug("GetAAprefixList(nMods={}, mod={})", nMods, mod.c_str());
-            std::vector<RE::BSFixedString> result(30);
-            for (auto& aa_mod : aa_registry::g_registry.mods) {
-                if (aa_mod.mod_id < 30) {
-                    spdlog::debug("  [{}] prefix={}", aa_mod.mod_id, aa_mod.prefix);
-                    result[aa_mod.mod_id] = aa_mod.prefix.c_str();
-                }
-            }
-            return result;
+            RE::StaticFunctionTag*, int32_t nMods, RE::BSFixedString mod, bool debugOutput) {
+            spdlog::debug("GetAAprefixList(nMods={}, mod={}, debugOutput={}) has been called.",
+                nMods, mod.c_str(), debugOutput);
+            return g_config.prefix_list;
         }
 
         /// Replaces `String[] Function GetAAsetList(Int nSets, String mod, Bool debugOutput) Global`
@@ -66,62 +48,16 @@ namespace FNIS_aa2 {
         /// will be silently missed and GetGroupBaseValue() returns 0 (vanilla slot),
         /// causing all animation variable sets for that group to be no-ops.
         static std::vector<RE::BSFixedString> GetAAsetList(
-            RE::StaticFunctionTag*,
-            int32_t           nSets,
-            RE::BSFixedString mod,
-            bool              debugOutput) {
-            spdlog::debug("GetAAsetList(nSets={}, mod={})", nSets, mod.c_str());
-
-            // Collect all entries first, then sort by group_id
-            struct Entry {
-                uint32_t    group_id;
-                uint32_t    encoded;
-                std::string mod_name;
-                std::string group_name;
-            };
-            std::vector<Entry> entries;
-            // The Papyrus String[] type has a fixed maximum length, declared as String[128]
-            // in FNIS_aa2.pex. The actual number of populated entries is nSets, passed in
-            // by the caller. Entries beyond nSets are ignored by all consumers.
-            // In practice nSets = total number of (mod, group) registrations across all mods,
-            // which is well below 128 in real-world setups (e.g. 3 mods → 19 entries).
-            //
-            // default: `010100`..=`010227`
-            entries.reserve(128);
-
-            for (auto& aa_mod : aa_registry::g_registry.mods) {
-                for (auto& group : aa_mod.groups) {
-                    const auto* info = GetAltGroup(group.name);
-                    if (!info) {
-                        spdlog::warn("GetAAsetList: unknown group '{}', skipping", group.name);
-                        continue;
-                    }
-                    entries.push_back({
-                        .group_id = info->id,
-                        .encoded = aa_mod.mod_id * 10000 + info->id * 100 + group.base,
-                        .mod_name = aa_mod.prefix,
-                        .group_name = group.name,
-                    });
-                }
-            }
-
-            std::ranges::sort(entries, {}, &Entry::group_id);
-
-            std::vector<RE::BSFixedString> result(128);
-            for (std::size_t i = 0; i < entries.size() && i < 128; ++i) {
-                auto& e = entries[i];
-                spdlog::debug("  [{}] mod={} group={} id={} encoded={:06}",
-                    i, e.mod_name, e.group_name, e.group_id, e.encoded);
-                result[i] = std::to_string(e.encoded).c_str();
-            }
-            return result;
+            RE::StaticFunctionTag*, int32_t nSets, RE::BSFixedString mod, bool debugOutput) {
+            spdlog::debug("GetAAsetList(nSets={}, mod={}, debugOutput={}) has been called.",
+                nSets, mod.c_str(), debugOutput);
+            return g_config.set_list;
         }
 
         // Replace `String Function get() Global`
         static RE::BSFixedString GetVersion(RE::StaticFunctionTag*) {
-            return aa_registry::g_registry.fnis_version.c_str();
+            return g_config.version;
         }
-
     }
 
     bool Register(RE::BSScript::IVirtualMachine* vm) {

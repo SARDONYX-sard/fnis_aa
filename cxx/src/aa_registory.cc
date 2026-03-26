@@ -1,3 +1,5 @@
+#include "alt_group_table.hh"
+
 #include "aa_registory.hh"
 
 namespace aa_registry {
@@ -13,68 +15,62 @@ namespace aa_registry {
             }
             return j[key].get<T>();
         }
-
     }
 
-    void OnLoad() {
-        std::filesystem::path dir = "Data/SKSE/Plugins/fnis_aa";
-        const auto            config_path = dir / "config.json";
+    ParsedConfig parse_config(const nlohmann::json& j) {
+        ParsedConfig r;
 
-        if (g_registry.LoadFromJson(config_path)) {
-            spdlog::info("json loaded.");
-        } else {
-            spdlog::error("Failed to load json from: {}", config_path.string());
-        }
-    }
-
-    bool AARegistry::LoadFromJson(const std::filesystem::path& path) {
-        std::ifstream f(path);
-        if (!f.is_open()) {
-            spdlog::warn("Failed to open: {}", path.string());
-            return false;
-        }
-
-        auto j = nlohmann::json::parse(f, nullptr, false);
-        if (j.is_discarded()) {
-            spdlog::error("Failed to parse JSON: {}", path.string());
-            return false;
-        }
-
-        crc = require_field<uint32_t>(j, "crc", 0u, "<root>");
-        fnis_version = require_field<std::string>(j, "fnis_version", "V07.06.00.0", "<root>");
+        r.crc = static_cast<int32_t>(require_field<uint32_t>(j, "crc", 0u, "<root>"));
+        r.version = require_field<std::string>(j, "fnis_version", "V07.06.00.0", "<root>");
 
         if (!j.contains("mods") || !j["mods"].is_array()) {
-            spdlog::warn("<root> missing or invalid 'mods' array");
-            return false;
+            SPDLOG_WARN("parse_registry: missing or invalid 'mods' array");
+            return r;
         }
 
-        mods.clear();
-        for (auto& jmod : j["mods"]) {
-            AAMod mod;
-            mod.prefix = require_field<std::string>(jmod, "prefix", std::string{}, "<mod>");
-            mod.name = require_field<std::string>(jmod, "name", std::string{}, "<mod>");
-            mod.mod_id = require_field<uint32_t>(jmod, "mod_id", 0u, mod.name);
+        struct Entry {
+            uint32_t group_id, encoded;
+        };
+        std::vector<Entry> set_entries;
+        set_entries.reserve(128);
 
-            const auto ctx = std::format("mod '{}'", mod.name);
+        for (const auto& jmod : j["mods"]) {
+            const auto mod_id = require_field<uint32_t>(jmod, "mod_id", 0u, "<mod>");
+            const auto prefix = require_field<std::string>(jmod, "prefix", {}, "<mod>");
+            const auto name = require_field<std::string>(jmod, "name", {}, "<mod>");
+            const auto ctx = std::format("mod '{}'", name);
+
+            r.mod_count++;
+            if (mod_id < 30) {
+                r.prefix_list[mod_id] = prefix;
+            }
+
             if (!jmod.contains("groups") || !jmod["groups"].is_array()) {
-                spdlog::warn("[{}] missing or invalid 'groups' array", ctx);
-                mods.push_back(std::move(mod));
+                SPDLOG_WARN("[{}] missing or invalid 'groups' array", ctx);
                 continue;
             }
-
-            for (auto& jg : jmod["groups"]) {
-                AAGroup g{
-                    .name = require_field<std::string>(jg, "name", std::string{}, ctx),
-                    .base = require_field<uint32_t>(jg, "base", 0u, std::format("{} group '{}'", ctx, g.name)),
-                };
-                mod.groups.push_back(std::move(g));
+            for (const auto& jg : jmod["groups"]) {
+                const auto  gname = require_field<std::string>(jg, "name", {}, ctx);
+                const auto  base = require_field<uint32_t>(jg, "base", 0u,
+                     std::format("{} group '{}'", ctx, gname));
+                const auto* info = GetAltGroup(gname);
+                if (!info) {
+                    SPDLOG_WARN("[{}] unknown group '{}', skipping", ctx, gname);
+                    continue;
+                }
+                set_entries.push_back({
+                    .group_id = info->id,
+                    .encoded = mod_id * 10000 + info->id * 100 + base,
+                });
+                r.set_count++;
             }
-
-            mods.push_back(std::move(mod));
         }
 
-        spdlog::info("Loaded {} mod(s) from: {}", mods.size(), path.string());
-        return true;
-    }
+        std::ranges::sort(set_entries, {}, &Entry::group_id);
+        for (std::size_t i = 0; i < set_entries.size() && i < 128; ++i) {
+            r.set_list[i] = std::format("{:06}", set_entries[i].encoded);
+        }
 
+        return r;
+    }
 }

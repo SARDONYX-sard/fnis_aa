@@ -1,4 +1,4 @@
-#include "core.hh"
+#include <bridge/src/bridge.rs.h>
 
 #include "aa_registory.hh"
 #include "fnis_aa2.hh"
@@ -8,14 +8,14 @@ namespace {
         switch (a_msg->type) {
         case SKSE::MessagingInterface::kPostLoadGame:  // Fired after loading a game save.
             {
-                skse_plugin_core::init();
+                bridge::bridge_init();
                 return;
             }
 
         case SKSE::MessagingInterface::kNewGame:     // Fired when starting a new game.
         case SKSE::MessagingInterface::kDataLoaded:  // Fired after all game data has loaded.
             {
-                aa_registry::OnLoad();
+                aa_registry::OnLoaded();
                 return;
             }
 

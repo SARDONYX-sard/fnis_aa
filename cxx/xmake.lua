@@ -99,3 +99,25 @@ target("regenerate_pex", function()
         end
     end)
 end)
+
+add_requires("catch2 3.13.0") -- For testing
+
+target("test_fnis_aa", function()
+    set_default(false)  -- To exclude `xmake build`
+    set_kind("binary")
+    add_packages("catch2", "nlohmann_json", "spdlog")
+
+    add_defines("TEST")
+
+    add_includedirs("src", "include")
+    set_pcxxheader("tests/pch.hh")
+    add_files("src/aa_registory.cc")
+
+    add_files("tests/test_aa.cc")
+
+    -- xmake test
+    add_tests("aa_registry", {
+        run_timeout = 10000,
+        trim_output = false
+    })
+end)
