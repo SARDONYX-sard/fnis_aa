@@ -79,10 +79,10 @@ namespace FNIS_aa2 {
         vm->RegisterFunction("GetAAprefixList", "FNIS_aa2", GetAAprefixList);
         vm->RegisterFunction("GetAAsetList", "FNIS_aa2", GetAAsetList);
 
-        vm->RegisterFunction("get", "FNISVersionGenerated", GetVersion);
+        vm->RegisterFunction("Get", "FNISVersion", GetVersion);
+        vm->RegisterFunction("Get", "FNISVersionGenerated", GetVersion);
 
         SPDLOG_INFO("FNIS_aa2 native overrides registered");
         return true;
     }
-
 }  // namespace FNIS_aa
