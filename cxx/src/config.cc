@@ -67,7 +67,12 @@ namespace config {
         r.prefix_list.resize(30);
 
         r.crc = static_cast<int32_t>(require_field<uint32_t>(j, "crc", 0u, "<root>"));
-        r.version = require_field<std::string>(j, "fnis_version", "V07.06.00.0", "<root>");
+
+        r.version_str = require_field<std::string>(j, "fnis_version", "V07.06.00.0", "<root>");
+        r.version = FNISVersion::from_str(r.version_str);
+
+        r.creature_version_str = require_field<std::string>(j, "fnis_creature_version", r.version_str, "<root>");
+        r.creature_version = FNISVersion::from_str(r.creature_version_str);
 
         if (!j.contains("mods") || !j["mods"].is_array()) {
             SPDLOG_WARN("parse_registry: missing or invalid 'mods' array");

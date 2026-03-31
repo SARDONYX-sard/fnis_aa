@@ -4,6 +4,40 @@
 #include <nlohmann/json.hpp>
 
 namespace config {
+    /// ---------------------------------------------------------------------------
+    /// Version helpers — read from g_config.version (set at load time from JSON)
+    ///
+    /// Format: "VXX.YY.ZZF"  (same as original FNIS spec)
+    ///   [1..2] = Major
+    ///   [4..5] = Minor1
+    ///   [7..8] = Minor2
+    ///   [10]   = Flags (0=Release, 1=Alpha, 2=Beta, 3=invalid)
+    /// ---------------------------------------------------------------------------
+    struct FNISVersion {
+        int32_t major = 0;
+        int32_t minor1 = 0;
+        int32_t minor2 = 0;
+        int32_t flags = 3;
+
+        static FNISVersion from_str(const std::string& ver) {
+            if (ver.size() < 10)
+                return {};
+            FNISVersion v;
+            try {
+                v.major = std::stoi(ver.substr(1, 2));
+                v.minor1 = std::stoi(ver.substr(4, 2));
+                v.minor2 = std::stoi(ver.substr(7, 2));
+                v.flags = (ver.size() > 10) ? std::stoi(ver.substr(10, 1)) : 0;
+            } catch (...) {
+                SPDLOG_WARN("FNIS: failed to parse version string '{}'", ver);
+            }
+            return v;
+        }
+
+        bool is_err() const {
+            return flags == 3;
+        }
+    };
 
     struct AASet {
         int32_t mod_id{ 0 };
@@ -27,8 +61,12 @@ namespace config {
         int32_t                   crc{ 0 };
         int32_t                   mod_count{ 0 };
         int32_t                   set_count{ 0 };
-        std::string               version{ "V07.06.00.0" };
-        std::vector<AASet>        set_list;  // capacity: 128
+        std::string               version_str{ "V07.06.00.0" };
+        std::string               creature_version_str{ "V07.06.00.0" };
+        FNISVersion               version;
+        FNISVersion               creature_version;
+
+        std::vector<AASet> set_list;  // capacity: 128
 #ifdef TEST
         std::vector<std::string> prefix_list;  // capacity: 30
 #else
@@ -46,7 +84,7 @@ namespace config {
                 "    version: \"{}\",\n"
                 "    prefix_list: [",
                 spdlog::level::to_string_view(log_level),
-                crc, mod_count, set_count, version);
+                crc, mod_count, set_count, version_str);
 
             for (size_t i = 0; i < prefix_list.size(); ++i) {
                 if (!prefix_list[i].empty()) {

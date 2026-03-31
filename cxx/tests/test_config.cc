@@ -30,7 +30,7 @@ namespace {
 
     TEST_CASE_METHOD(ValidFixture, "crc and version") {
         CHECK(cfg.crc == 1520082533);
-        CHECK(cfg.version == "V07.06.00.0");
+        CHECK(cfg.version_str == "V07.06.00.0");
     }
 
     TEST_CASE_METHOD(ValidFixture, "mod count and set count") {
@@ -60,7 +60,7 @@ namespace {
 
     TEST_CASE("missing fnis_version defaults") {
         const auto cfg = parse_config(json::parse(R"({"mods":[]})"));
-        CHECK(cfg.version == "V07.06.00.0");
+        CHECK(cfg.version_str == "V07.06.00.0");
     }
 
     TEST_CASE("unknown group is skipped") {

@@ -68,7 +68,7 @@ namespace FNIS_aa2 {
 
         // Replace `String Function get() Global`
         static RE::BSFixedString GetVersion(RE::StaticFunctionTag*) {
-            return g_config.version;
+            return g_config.version_str;
         }
     }
 

@@ -1,8 +1,10 @@
 #include <bridge/src/bridge.rs.h>
 
 #include "config.hh"
+#include "fnis.hh"
 #include "fnis_aa.hh"
 #include "fnis_aa2.hh"
+// #include "fnis_quest.hh"
 
 namespace {
     static void skse_listener(SKSE::MessagingInterface::Message* a_msg) {
@@ -10,6 +12,7 @@ namespace {
         case SKSE::MessagingInterface::kPostLoadGame:  // Fired after loading a game save.
             {
                 bridge::bridge_init();
+                // fnis_quest::OnPostLoadGame();
                 return;
             }
 
@@ -49,8 +52,10 @@ extern "C" __declspec(dllexport) bool
     }
 
     msg->RegisterListener("SKSE", ::skse_listener);
+
     SKSE::GetPapyrusInterface()->Register(FNIS_aa2::Register);
     SKSE::GetPapyrusInterface()->Register(FNIS_aa::Register);
+    SKSE::GetPapyrusInterface()->Register(FNIS::Register);
 
     return true;
 }
