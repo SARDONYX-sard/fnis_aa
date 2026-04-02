@@ -2,7 +2,7 @@
 local PLUGIN_NAME<const> = "fnis_aa" -- dll name
 local AUTHOR_NAME<const> = "SARDONYX" -- NOTE: Including a space seems to break the rc.
 local DESCRIPTION<const> = "An SKSE plugin that generates functions at runtime based on JSON using C++ to execute partial FNIS scripts."
-local VERSION<const> = "2.0.0"
+local VERSION<const> = "3.0.0"
 local LICENSE<const> = "MIT OR Apache-2.0"
 --
 
