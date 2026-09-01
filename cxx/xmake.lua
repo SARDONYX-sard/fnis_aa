@@ -1,24 +1,23 @@
--- Please change this for your settings.
 local PLUGIN_NAME<const> = "fnis_aa" -- dll name
 local AUTHOR_NAME<const> = "SARDONYX" -- NOTE: Including a space seems to break the rc.
-local DESCRIPTION<const> = "An SKSE plugin that generates functions at runtime based on JSON using C++ to execute partial FNIS scripts."
+local DESCRIPTION<const> = "Dyn defines FNIS AA functions. SkyrimSE, AE(<=1.7.99.0), VR"
 local VERSION<const> = "3.0.0"
-local LICENSE<const> = "MIT OR Apache-2.0"
+local LICENSE<const> = "GPL-3.0-only" -- changed CommonLibSSE-NG GPL-3.0: https://github.com/alandtse/CommonLibSSE-NG/commit/108836139ee612651f6c6c4dc4c41e673dcde623
 --
 
 set_version(VERSION)
 set_license(LICENSE)
 
-set_config("rex_json", true)
-set_config("rex_toml", true)
-includes("../extern/CommonLibVR_NG")
-
+includes("../extern/CommonLibSSE_NG")
 includes("../rust/bridge")
 
+add_requires("toml11 v4.4.0")
+add_requires("nlohmann_json v3.12.0")
+
 target(PLUGIN_NAME, function ()
+    add_packages("toml11", "nlohmann_json")
     add_deps("commonlibsse-ng")
     add_deps("rust_bridge")
-
     add_defines("SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE")
 
     add_includedirs("include")
@@ -30,7 +29,7 @@ target(PLUGIN_NAME, function ()
     add_cxxflags("cl::/Zc:char8_t")
     add_cxxflags("clang-cl::/Zc:char8_t")
 
-    -- Rust bridge
+    -- Rust bridge -----------------------------------------------------------------------------------------------------
     add_includedirs("../target/cxxbridge", { public = true })
     add_headerfiles("../target/cxxbridge/**.h")
     add_files("../target/cxxbridge/**.cc")
@@ -40,7 +39,7 @@ target(PLUGIN_NAME, function ()
     if is_plat("windows") then
         add_links("ntdll", "userenv", "ws2_32", { public = true })
     end
-    --
+    --------------------------------------------------------------------------------------------------------------------
 
     -- This setting automatically creates `SKSE/Plugins/<target_NAME>.dll` during `xmake install`.
     add_rules("commonlibsse-ng.plugin", {

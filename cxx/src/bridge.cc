@@ -23,13 +23,6 @@ namespace bridge {
         spdlog::error(std::string_view(msg.data(), msg.size()));
     }
 
-    rust::String get_calendar_time() {
-        std::array<char, 256> buffer{};
-        RE::Calendar::GetSingleton()->GetTimeDateString(buffer.data(), buffer.size(), true);
-
-        return rust::String{ buffer.data() };
-    }
-
     void message_box(rust::Str msg) {
         RE::DebugMessageBox(std::string{ msg }.data());
     }

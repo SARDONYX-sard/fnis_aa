@@ -18,7 +18,7 @@ namespace config {
         }
 
         /// Validates the log level string and applies it to spdlog.
-        spdlog::level::level_enum validate_and_apply_log_level(std::string_view a_level_str) {
+        spdlog::level::level_enum spdlog_level_from_str(std::string_view a_level_str) {
             spdlog::level::level_enum target_level = spdlog::level::info;
             bool                      is_valid = false;
 
@@ -48,7 +48,7 @@ namespace config {
 
             if (!is_valid) {
                 SPDLOG_WARN("Invalid log_level: \"{}\". Expected trace/debug/info/warn/err/critical/off.", a_level_str);
-                SPDLOG_WARN("  -> Falling back to default: \"trace\"");
+                SPDLOG_WARN("  -> Falling back to default: \"warn\"");
                 target_level = spdlog::level::trace;
             }
 
@@ -59,8 +59,8 @@ namespace config {
     ParsedConfig parse_config(const nlohmann::json& j) {
         ParsedConfig r;
         {
-            auto log_level_raw = j.value<std::string_view>("log_level", "trace");
-            r.log_level = validate_and_apply_log_level(log_level_raw);
+            auto log_level_str = j.value<std::string_view>("log_level", "warn");
+            r.log_level = spdlog_level_from_str(log_level_str);
         }
 
         r.set_list.reserve(128);

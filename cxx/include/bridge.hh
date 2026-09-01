@@ -11,6 +11,5 @@ namespace bridge {
     void spdlog_error(rust::Str msg);
 
     // Bridge test fn
-    rust::String get_calendar_time();
-    void         message_box(rust::Str msg);
+    void message_box(rust::Str msg);
 }  // namespace bridge

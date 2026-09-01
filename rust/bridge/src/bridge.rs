@@ -14,8 +14,6 @@ pub(crate) mod ffi {
         pub fn spdlog_warn(msg: &str);
         pub fn spdlog_error(msg: &str);
 
-        pub fn get_calendar_time() -> String;
-
         /// # Example
         ///
         /// ```rust,no_compile
