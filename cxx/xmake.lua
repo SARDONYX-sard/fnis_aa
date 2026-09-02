@@ -9,6 +9,7 @@ set_version(VERSION)
 set_license(LICENSE)
 
 includes("../extern/CommonLibSSE_NG")
+includes("../extern/SKSEMenuFramework")
 includes("../rust/bridge")
 
 add_requires("toml11 v4.4.0")
@@ -17,6 +18,7 @@ add_requires("nlohmann_json v3.12.0")
 target(PLUGIN_NAME, function ()
     add_packages("toml11", "nlohmann_json")
     add_deps("commonlibsse-ng")
+    add_deps("SKSEMenuFramework")
     add_deps("rust_bridge")
     add_defines("SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE")
 
@@ -56,7 +58,7 @@ target(PLUGIN_NAME, function ()
 
         for _, pex in ipairs(os.files(path.join(src_dir, "*.pex"))) do
             os.cp(pex, dst_dir)
-            print("Installed " .. path.filename(pex) .. " → " .. dst_dir)
+            print("Installed " .. path.filename(pex) .. " -> " .. dst_dir)
         end
     end)
 end)
@@ -101,7 +103,7 @@ target("regenerate_pex", function()
             end
 
             local dst_pex = path.join(dst_dir, file_name:gsub("%.psc$", ".pex"))
-            print("Compiled " .. psc .. " → " .. dst_pex)
+            print("Compiled " .. psc .. " -> " .. dst_pex)
         end
     end)
 end)

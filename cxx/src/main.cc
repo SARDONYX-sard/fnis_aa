@@ -18,6 +18,8 @@ namespace {
         case SKSE::MessagingInterface::kDataLoaded:  // Fired after all game data has loaded.
             {
                 config::OnLoaded();
+                fnis_aa::menu::UpdateSnapshot();
+                fnis_aa::menu::Register();
                 return;
             }
         default:
@@ -44,7 +46,6 @@ extern "C" __declspec(dllexport) bool
     }
 
     msg->RegisterListener("SKSE", ::skse_listener);
-
     SKSE::GetPapyrusInterface()->Register(FNIS_aa2::Register);
     SKSE::GetPapyrusInterface()->Register(FNIS_aa::Register);
     SKSE::GetPapyrusInterface()->Register(FNIS::Register);
