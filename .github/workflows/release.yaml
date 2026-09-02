@@ -64,4 +64,4 @@ jobs:
             "${{ github.ref_name }}" `
             "${{ steps.plugin.outputs.PLUGIN_NAME }}-windows.zip" `
             --title "${{ steps.plugin.outputs.PLUGIN_NAME }} ${{ github.ref_name }}" `
-            --notes "Automated release for ${{ github.ref_name }}"
+            --generate-notes

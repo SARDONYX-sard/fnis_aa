@@ -1,7 +1,7 @@
 local PLUGIN_NAME<const> = "fnis_aa" -- dll name
 local AUTHOR_NAME<const> = "SARDONYX" -- NOTE: Including a space seems to break the rc.
 local DESCRIPTION<const> = "Dyn defines FNIS AA functions. SkyrimSE, AE(<=1.7.99.0), VR"
-local VERSION<const> = "3.0.0"
+local VERSION<const> = "3.0.1"
 local LICENSE<const> = "GPL-3.0-only" -- changed CommonLibSSE-NG GPL-3.0: https://github.com/alandtse/CommonLibSSE-NG/commit/108836139ee612651f6c6c4dc4c41e673dcde623
 --
 
