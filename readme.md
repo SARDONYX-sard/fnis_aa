@@ -12,11 +12,11 @@ This will be useful for users who are using the Patching Tool and FNIS AA mods s
 - Skyrim Special Edition / VR
 - [SKSE64](https://skse.silverlock.org/)
 - [Address Library for SKSE Plugins](https://www.nexusmods.com/skyrimspecialedition/mods/32444)
-- [FNIS SE(Only scripts + esp)](https://www.nexusmods.com/skyrimspecialedition/mods/3038)
 
-- A patching tool capable of converting FNIS AA to OAR and generating `SKSE/plugins/fnis_aa/config.json`
-  - [Pandora](https://www.nexusmods.com/skyrimspecialedition/mods/133232) will be supported in the future
-  - [d_merge](https://www.nexusmods.com/skyrimspecialedition/mods/152190) — generates `To OAR mod`, `config.json` and BDI config
+- Patchers (such as [Pandora](https://www.nexusmods.com/skyrimspecialedition/mods/133232) or [d_merge](https://www.nexusmods.com/skyrimspecialedition/mods/152190)) that meet the following criteria:
+  - Addition of the FNIS_aa variable
+  - Output of a config.json file for fnis_aa
+  - Dynamic modification of hkbClipGenerator via variables (either by changing to OAR or using hkbManualSelector, as in FNIS or Nemesis)
 
 ## Installation
 
@@ -39,27 +39,6 @@ Instead of compiling the script every time, this plugin defines functions based 
 Also, overwrite the following script to speed up execution
 
 - `FNIS_aa.pex`
-
-### Data Flow & State Transition
-
-```txt
-[Patching Tool(e.g., d_merge, Pandora)]
- ├──> FNIS AA to OAR
-`SKSE/Plugins/
-    ├──> Injects FNISaa_* variables. Using BehaviorDataInjector is another option.
-    └──> Generated [fnis_aa/config.json] --------> [C++ Plugin] (Native memory allocation)
-
-                                     |
-[Existing Mod Scripts] --------------|
-    |                                |
-    | (Call SetAnimGroupEX)          |
-    v                                v
-[Native Interceptor] ---------> [Dynamic Vector] (mod_id 0 ~ Unlimited)
-    |                                |
-    | (Calculate: Base + Index)      |
-    v                                v
-[Actor Variable] -------------> Sets "FNISaa_<group>" to behavior graph
-```
 
 ### config.json
 
