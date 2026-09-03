@@ -2,7 +2,7 @@
 
 #include "bridge.hh"
 
-namespace bridge {
+namespace fnis_aa::bridge {
     void spdlog_trace(rust::Str msg) {
         spdlog::trace(std::string_view(msg.data(), msg.size()));
     }
@@ -26,4 +26,4 @@ namespace bridge {
     void message_box(rust::Str msg) {
         RE::DebugMessageBox(std::string{ msg }.data());
     }
-}  // namespace bridge
+}

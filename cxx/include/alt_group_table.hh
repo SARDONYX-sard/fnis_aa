@@ -1,83 +1,108 @@
 #pragma once
+
+#include <algorithm>
 #include <array>
-#include <cstdint>
-#include <string_view>
 
-struct AAGroupInfo {
-    std::string_view name;
-    int32_t          id;
-};
+namespace fnis_aa {
 
-// NOTE: Sorting by name enables binary search
-// group name, id
-inline constexpr std::array<AAGroupInfo, 54> kAltGroupTable = { {
-    { "_1hmatk", 19 },
-    { "_1hmatkpow", 20 },
-    { "_1hmblock", 21 },
-    { "_1hmeqp", 37 },
-    { "_1hmidle", 1 },
-    { "_1hmmt", 13 },
-    { "_1hmstag", 22 },
-    { "_2hmatk", 23 },
-    { "_2hmatkpow", 24 },
-    { "_2hmblock", 25 },
-    { "_2hmeqp", 39 },
-    { "_2hmidle", 2 },
-    { "_2hmmt", 14 },
-    { "_2hmstag", 26 },
-    { "_2hwatk", 27 },
-    { "_2hwatkpow", 28 },
-    { "_2hwblock", 29 },
-    { "_2hweqp", 38 },
-    { "_2hwidle", 3 },
-    { "_2hwstag", 30 },
-    { "_axeeqp", 40 },
-    { "_bowatk", 31 },
-    { "_bowblock", 32 },
-    { "_boweqp", 41 },
-    { "_bowidle", 4 },
-    { "_bowmt", 15 },
-    { "_cboweqp", 42 },
-    { "_cbowidle", 5 },
-    { "_dageqp", 43 },
-    { "_dw", 50 },
-    { "_h2hatk", 33 },
-    { "_h2hatkpow", 34 },
-    { "_h2heqp", 44 },
-    { "_h2hidle", 6 },
-    { "_h2hstag", 35 },
-    { "_jump", 51 },
-    { "_maceqp", 45 },
-    { "_magatk", 36 },
-    { "_magcastmt", 17 },
-    { "_magcon", 49 },
-    { "_mageqp", 46 },
-    { "_magidle", 7 },
-    { "_magmt", 16 },
-    { "_mt", 10 },
-    { "_mtidle", 0 },
-    { "_mtturn", 12 },
-    { "_mtx", 11 },
-    { "_shield", 53 },
-    { "_shout", 48 },
-    { "_sneakidle", 8 },
-    { "_sneakmt", 18 },
-    { "_sprint", 52 },
-    { "_staffidle", 9 },
-    { "_stfeqp", 47 },
-} };
+    struct AAGroupInfo {
+        std::string_view name;
+        int32_t          id;
+    };
 
-static_assert([] {
-    for (std::size_t i = 1; i < kAltGroupTable.size(); ++i)
-        if (kAltGroupTable[i].name <= kAltGroupTable[i - 1].name)
+    // NOTE: Sorting by name enables binary search group name, id
+    inline constexpr std::array<AAGroupInfo, 54> ALT_GROUP_TABLE = { {
+        { .name = "_1hmatk", .id = 19 },
+        { .name = "_1hmatkpow", .id = 20 },
+        { .name = "_1hmblock", .id = 21 },
+        { .name = "_1hmeqp", .id = 37 },
+        { .name = "_1hmidle", .id = 1 },
+        { .name = "_1hmmt", .id = 13 },
+        { .name = "_1hmstag", .id = 22 },
+        { .name = "_2hmatk", .id = 23 },
+        { .name = "_2hmatkpow", .id = 24 },
+        { .name = "_2hmblock", .id = 25 },
+        { .name = "_2hmeqp", .id = 39 },
+        { .name = "_2hmidle", .id = 2 },
+        { .name = "_2hmmt", .id = 14 },
+        { .name = "_2hmstag", .id = 26 },
+        { .name = "_2hwatk", .id = 27 },
+        { .name = "_2hwatkpow", .id = 28 },
+        { .name = "_2hwblock", .id = 29 },
+        { .name = "_2hweqp", .id = 38 },
+        { .name = "_2hwidle", .id = 3 },
+        { .name = "_2hwstag", .id = 30 },
+        { .name = "_axeeqp", .id = 40 },
+        { .name = "_bowatk", .id = 31 },
+        { .name = "_bowblock", .id = 32 },
+        { .name = "_boweqp", .id = 41 },
+        { .name = "_bowidle", .id = 4 },
+        { .name = "_bowmt", .id = 15 },
+        { .name = "_cboweqp", .id = 42 },
+        { .name = "_cbowidle", .id = 5 },
+        { .name = "_dageqp", .id = 43 },
+        { .name = "_dw", .id = 50 },
+        { .name = "_h2hatk", .id = 33 },
+        { .name = "_h2hatkpow", .id = 34 },
+        { .name = "_h2heqp", .id = 44 },
+        { .name = "_h2hidle", .id = 6 },
+        { .name = "_h2hstag", .id = 35 },
+        { .name = "_jump", .id = 51 },
+        { .name = "_maceqp", .id = 45 },
+        { .name = "_magatk", .id = 36 },
+        { .name = "_magcastmt", .id = 17 },
+        { .name = "_magcon", .id = 49 },
+        { .name = "_mageqp", .id = 46 },
+        { .name = "_magidle", .id = 7 },
+        { .name = "_magmt", .id = 16 },
+        { .name = "_mt", .id = 10 },
+        { .name = "_mtidle", .id = 0 },
+        { .name = "_mtturn", .id = 12 },
+        { .name = "_mtx", .id = 11 },
+        { .name = "_shield", .id = 53 },
+        { .name = "_shout", .id = 48 },
+        { .name = "_sneakidle", .id = 8 },
+        { .name = "_sneakmt", .id = 18 },
+        { .name = "_sprint", .id = 52 },
+        { .name = "_staffidle", .id = 9 },
+        { .name = "_stfeqp", .id = 47 },
+    } };
+    static_assert(std::ranges::is_sorted(ALT_GROUP_TABLE, {}, &AAGroupInfo::name), "kAltGroupTable must be sorted by name");
+
+    // Binary search for the first element whose projected key is not less than `name`.
+    // Requires `ALT_GROUP_TABLE` to be sorted by `AAGroupInfo::name`.
+    // Complexity: O(log N) comparisons.
+    // - https://en.cppreference.com/w/cpp/algorithm/ranges/lower_bound
+    [[nodiscard]] constexpr std::optional<std::reference_wrapper<const AAGroupInfo>> GetAltGroup(std::string_view name) noexcept {
+        const auto iter = std::ranges::lower_bound(ALT_GROUP_TABLE, name, {}, &AAGroupInfo::name);
+        if (iter == ALT_GROUP_TABLE.end() || iter->name != name) {
+            return std::nullopt;
+        }
+
+        return std::cref(*iter);
+    }
+
+    static_assert([] {
+        const auto a = GetAltGroup("_1hmatk");
+        if (!a || a->get().name != "_1hmatk" || a->get().id != 19) {
             return false;
-    return true;
-}(),
-    "kAltGroupTable must be sorted by name");
+        }
 
-[[nodiscard]] constexpr const AAGroupInfo* GetAltGroup(std::string_view name) noexcept {
-    for (const auto& entry : kAltGroupTable)
-        if (entry.name == name)
-            return &entry;
-    return nullptr;
+        const auto b = GetAltGroup("_mtidle");
+        if (!b || b->get().name != "_mtidle" || b->get().id != 0) {
+            return false;
+        }
+
+        const auto c = GetAltGroup("_2hwatk");
+        if (!c || c->get().name != "_2hwatk" || c->get().id != 27) {
+            return false;
+        }
+
+        const auto d = GetAltGroup("_shield");
+        if (!d || d->get().name != "_shield" || d->get().id != 53) {
+            return false;
+        }
+
+        return !GetAltGroup("_does_not_exist");
+    }());
 }

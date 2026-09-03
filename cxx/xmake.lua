@@ -1,8 +1,8 @@
 local PLUGIN_NAME<const> = "fnis_aa" -- dll name
 local AUTHOR_NAME<const> = "SARDONYX" -- NOTE: Including a space seems to break the rc.
-local DESCRIPTION<const> = "Dyn defines FNIS AA functions. SkyrimSE, AE(<=1.7.99.0), VR"
+local DESCRIPTION<const> = "Dyn defines FNIS AA functions. SkyrimSE, AE(<=1.7.104.0), VR"
 local VERSION<const> = "3.0.1"
-local LICENSE<const> = "GPL-3.0-only" -- changed CommonLibSSE-NG GPL-3.0: https://github.com/alandtse/CommonLibSSE-NG/commit/108836139ee612651f6c6c4dc4c41e673dcde623
+local LICENSE<const> = "GPL-3.0-or-later" -- changed CommonLibSSE-NG GPL-3.0-or-later: https://github.com/alandtse/CommonLibSSE-NG/tree/7a60f4de794095d7b0f8928d1b930a52e9a7da83#license
 --
 
 set_version(VERSION)
@@ -27,6 +27,9 @@ target(PLUGIN_NAME, function ()
     set_pcxxheader("include/pch.hh")
 
     add_files("src/**.cc")
+
+    -- SKSEMenuFramework.h warn
+    add_cxxflags("/wd5054", { tools = "cl" })
 
     add_cxxflags("cl::/Zc:char8_t")
     add_cxxflags("clang-cl::/Zc:char8_t")
@@ -68,7 +71,7 @@ target("regenerate_pex", function()
     on_build(function (target)
         local skyrim_dir  = os.getenv("SKYRIM_DIR") or "D:/STEAM/steamapps/common/Skyrim Special Edition"
         local compiler    = path.join(skyrim_dir, "Papyrus Compiler/PapyrusCompiler.exe")
-        local skse_source = path.join(skyrim_dir, "Data/Source/Scripts")
+        local skse_source = path.join(skyrim_dir, "Data/Scripts/Source")
         local flags_file  = path.join(skse_source, "TESV_Papyrus_Flags.flg")
         local src_dir     = path.join(os.scriptdir(), "papyrus")
         local dst_dir     = path.join(os.scriptdir(), "papyrus/prebuilt")
