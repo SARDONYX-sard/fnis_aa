@@ -57,16 +57,11 @@ namespace fnis_aa::menu {
             bool has_errors = false;
         };
 
-        /*
-         * The snapshot is constructed after config::OnLoaded().
-         *
-         * It is intentionally immutable after construction. The menu renderer
-         * never accesses config::g_config directly.
-         */
+        /* The snapshot is constructed after config::OnLoaded(). */
         Snapshot g_snapshot;
 
         [[nodiscard]] std::string_view group_name(int32_t group_id) noexcept {
-            for (const auto& group : kAltGroupTable) {
+            for (const auto& group : ALT_GROUP_TABLE) {
                 if (group.id == group_id) {
                     return group.name;
                 }
@@ -127,7 +122,7 @@ namespace fnis_aa::menu {
             });
         }
 
-        [[nodiscard]] Snapshot build_snapshot(const config::ParsedConfig& config) {
+        [[nodiscard]] Snapshot build_snapshot(const config::Config& config) {
             Snapshot snapshot;
 
             snapshot.crc = config.crc;
@@ -189,51 +184,42 @@ namespace fnis_aa::menu {
             }
 
             if (config.creature_version.is_err()) {
-                add_diagnostic(snapshot, DiagnosticLevel::error,
-                    std::format("Invalid creature FNIS version: {}", config.creature_version_str));
+                add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Invalid creature FNIS version: {}", config.creature_version_str));
             }
 
             if (config.mod_count < 0) {
-                add_diagnostic(snapshot, DiagnosticLevel::error,
-                    std::format("Invalid negative mod count: {}", config.mod_count));
+                add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Invalid negative mod count: {}", config.mod_count));
             }
 
             if (config.set_count < 0) {
-                add_diagnostic(snapshot, DiagnosticLevel::error,
-                    std::format("Invalid negative set count: {}", config.set_count));
+                add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Invalid negative set count: {}", config.set_count));
             }
 
             if (config.set_count != static_cast<int32_t>(config.set_list.size())) {
-                add_diagnostic(snapshot, DiagnosticLevel::error,
-                    std::format("Set count mismatch: declared={}, actual={}", config.set_count, config.set_list.size()));
+                add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Set count mismatch: declared={}, actual={}", config.set_count, config.set_list.size()));
             }
 
             for (size_t index = 0; index < config.set_list.size(); ++index) {
                 const auto& set = config.set_list[index];
 
                 if (set.mod_id < 0) {
-                    add_diagnostic(snapshot, DiagnosticLevel::error,
-                        std::format("Entry {} has an invalid mod id: {}", index, set.mod_id));
+                    add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Entry {} has an invalid mod id: {}", index, set.mod_id));
                 }
 
                 if (set.group_id < 0) {
-                    add_diagnostic(snapshot, DiagnosticLevel::error,
-                        std::format("Entry {} has an invalid group id: {}", index, set.group_id));
+                    add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Entry {} has an invalid group id: {}", index, set.group_id));
                 }
 
                 if (set.base < 0) {
-                    add_diagnostic(snapshot, DiagnosticLevel::error,
-                        std::format("Entry {} has an invalid base: {}", index, set.base));
+                    add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Entry {} has an invalid base: {}", index, set.base));
                 }
 
                 if (set.mod_id >= 0 && static_cast<size_t>(set.mod_id) >= config.prefix_list.size()) {
-                    add_diagnostic(snapshot, DiagnosticLevel::error,
-                        std::format("Entry {} references missing prefix for mod id {}", index, set.mod_id));
+                    add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Entry {} references missing prefix for mod id {}", index, set.mod_id));
                 }
 
                 if (group_name(set.group_id).empty()) {
-                    add_diagnostic(snapshot, DiagnosticLevel::error,
-                        std::format("Entry {} references unknown group id {}", index, set.group_id));
+                    add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Entry {} references unknown group id {}", index, set.group_id));
                 }
             }
 
@@ -252,6 +238,9 @@ namespace fnis_aa::menu {
             draw_status(level, diagnostic_label(level), message);
         }
 
+        /// # Safety
+        ///
+        /// Must null terminated key .
         void draw_property_table(std::initializer_list<std::pair<std::string_view, std::string_view>> rows) {
             if (!ImGuiMCP::BeginTable("PropertyTable", 2,
                     ImGuiTableFlags_Reorderable |
@@ -267,11 +256,40 @@ namespace fnis_aa::menu {
             for (const auto& [description, value] : rows) {
                 ImGuiMCP::TableNextRow();
                 ImGuiMCP::TableNextColumn();
+
+                // NOLINTBEGIN(bugprone-suspicious-stringview-data-usage): Safety: as long as null terminated
                 ImGuiMCP::TextUnformatted(description.data());
                 ImGuiMCP::TableNextColumn();
                 ImGuiMCP::TextUnformatted(value.data());
+                // NOLINTEND(bugprone-suspicious-stringview-data-usage)
             }
             ImGuiMCP::EndTable();
+        }
+
+        void draw_log_level() {
+            static constexpr std::array<const char*, 7> kLogLevels = {
+                "trace",
+                "debug",
+                "info",
+                "warn",
+                "error",
+                "critical",
+                "off",
+            };
+
+            auto& log_level = config::g_config.log_level;
+            int   current = static_cast<int>(log_level);
+
+            if (ImGuiMCP::Combo("Log Level", &current, kLogLevels.data(), static_cast<int>(kLogLevels.size()))) {
+                log_level = static_cast<spdlog::level::level_enum>(current);
+                spdlog::set_level(log_level);
+                SPDLOG_INFO("Logger level changed to {}", spdlog::level::to_string_view(log_level));
+            }
+            if (ImGuiMCP::IsItemHovered()) {
+                ImGuiMCP::SetTooltip(
+                    "Log level is read from the 'log_level' key in config.json.\n"
+                    "Defaults to 'info' when the key is not present.");
+            }
         }
 
         void draw_overview() {
@@ -302,8 +320,7 @@ namespace fnis_aa::menu {
                 draw_status(DiagnosticLevel::success, "Configuration is valid.");
             }
 
-            ImGuiMCP::Spacing();
-            ImGuiMCP::BulletText("Read-only FNIS AA configuration snapshot");
+            draw_log_level();
         }
 
         void draw_mod_layout() {
@@ -475,7 +492,11 @@ namespace fnis_aa::menu {
         }
     }
 
+    // NOLINTBEGIN(misc-use-internal-linkage)
     void UpdateSnapshot() {
+        if (!SKSEMenuFramework::IsInstalled()) {
+            return;
+        }
         g_snapshot = build_snapshot(config::g_config);
     }
 
@@ -487,4 +508,5 @@ namespace fnis_aa::menu {
         SKSEMenuFramework::SetSection(std::string(kSection));
         SKSEMenuFramework::AddSectionItem("Status", render);
     }
+    // NOLINTEND(misc-use-internal-linkage)
 }

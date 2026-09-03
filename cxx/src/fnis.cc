@@ -1,19 +1,15 @@
-#include "config.hh"
+#include "fnis_aa.hh"
 
-namespace FNIS {
+namespace fnis_aa::FNIS {
 
     namespace {
-        using namespace ::config;
+        using namespace fnis_aa::config;
 
         // ---------------------------------------------------------------------------
         // AAReport
         // ---------------------------------------------------------------------------
 
-        static void AAReport_impl(
-            const std::string& long_report,
-            const std::string& short_report,
-            int32_t            aa_debug,
-            bool               is_error) {
+        void AAReport_impl(const std::string& long_report, const std::string& short_report, int32_t aa_debug, bool is_error) {
             if (aa_debug >= 1) {
                 if (!long_report.empty()) {
                     SPDLOG_WARN("LONG REPORT:{}", long_report);
@@ -27,13 +23,8 @@ namespace FNIS {
             }
         }
 
-        // void FNIS.AAReport(string longReport, string shortReport, int AAdebug, bool isError)
-        static void AAReport(
-            RE::StaticFunctionTag*,
-            RE::BSFixedString long_report,
-            RE::BSFixedString short_report,
-            int32_t           aa_debug,
-            bool              is_error) {
+        /// `void FNIS.AAReport(string longReport, string shortReport, int AAdebug, bool isError)`
+        void AAReport(RE::StaticFunctionTag*, RE::BSFixedString long_report, RE::BSFixedString short_report, int32_t aa_debug, bool is_error) {
             AAReport_impl(long_report.c_str(), short_report.c_str(), aa_debug, is_error);
         }
 
@@ -41,31 +32,22 @@ namespace FNIS {
         // set_AACondition
         // ---------------------------------------------------------------------------
 
-        static int32_t SetAACondition(
-            RE::StaticFunctionTag*,
-            RE::Actor*        ac,
-            RE::BSFixedString aa_type,
-            RE::BSFixedString mod,
-            int32_t           aa_cond,
-            int32_t           aa_debug) {
-            SPDLOG_DEBUG("call set_AACondition(actor={}, aa_type='{}', mod='{}', aa_cond={}, aa_debug={})",
-                ac ? ac->GetName() : "(null)", aa_type.c_str(), mod.c_str(), aa_cond, aa_debug);
+        int32_t SetAACondition(RE::StaticFunctionTag*, RE::Actor* ac, RE::BSFixedString aa_type, RE::BSFixedString mod, int32_t aa_cond, int32_t aa_debug) {
+            SPDLOG_DEBUG("call set_AACondition(actor={}, aa_type='{}', mod='{}', aa_cond={}, aa_debug={})", ac ? ac->GetName() : "(null)", aa_type.c_str(), mod.c_str(), aa_cond, aa_debug);
+
             if (!ac) {
                 SPDLOG_WARN("set_AACondition: null actor (mod='{}'), return -1", mod.c_str());
                 return -1;
             }
 
-            const std::string actor_name =
-                ac->GetBaseObject() ? ac->GetBaseObject()->GetName() : "(unknown)";
+            const std::string actor_name = ac->GetBaseObject() ? ac->GetBaseObject()->GetName() : "(unknown)";
 
             // ERROR 1: 3D load check
             if (ac == RE::PlayerCharacter::GetSingleton()) {
                 RE::PlayerCamera::GetSingleton()->ForceThirdPerson();
             } else if (!ac->Is3DLoaded()) {
-                AAReport_impl(
-                    std::format("FNIS AA ERROR(mod={}): expected actor '{}' to be 3D-loaded, but it was not",
-                        mod.c_str(), actor_name),
-                    "", aa_debug, true);
+                const auto log_report = std::format("FNIS AA ERROR(mod={}): expected actor '{}' to be 3D-loaded, but it was not", mod.c_str(), actor_name);
+                AAReport_impl(log_report, "", aa_debug, true);
                 return -1;
             }
 
@@ -76,11 +58,8 @@ namespace FNIS {
             } else if (std::string_view(aa_type) == "mt_locomotion") {
                 i_aa = 2;
             } else {
-                AAReport_impl(
-                    std::format("FNIS AA ERROR(mod={}): expected aa_type to be one of "
-                                "['mt_loco_forward', 'mt_locomotion'], but got '{}'",
-                        mod.c_str(), aa_type.c_str()),
-                    "", aa_debug, true);
+                auto log_report = std::format("FNIS AA ERROR(mod={}): expected aa_type to be one of ['mt_loco_forward', 'mt_locomotion'], but got '{}'", mod.c_str(), aa_type.c_str());
+                AAReport_impl(log_report, "", aa_debug, true);
                 return -2;
             }
 
@@ -99,13 +78,11 @@ namespace FNIS {
             int32_t i_base = 0;
             ac->GetGraphVariableInt(mod_var, i_base);
             if (i_base <= 0) {
-                AAReport_impl(
-                    std::format("FNIS AA ERROR(mod={}): expected AnimVar '{}' > 0 on actor '{}', but got {} ", mod.c_str(), mod_var, actor_name, i_base),
-                    "", aa_debug, true);
+                auto long_report = std::format("FNIS AA ERROR(mod={}): expected AnimVar '{}' > 0 on actor '{}', but got {} ", mod.c_str(), mod_var, actor_name, i_base);
+                AAReport_impl(long_report, "", aa_debug, true);
                 return -4;
             }
 
-            // Write
             const int32_t i_set = (aa_cond > 0) ? (i_base + aa_cond) : 0;
             ac->SetGraphVariableInt(aa_var, i_set);
 
@@ -113,20 +90,14 @@ namespace FNIS {
             int32_t i_result = 0;
             ac->GetGraphVariableInt(aa_var, i_result);
             if (i_set != i_result) {
-                AAReport_impl(
-                    std::format("FNIS AA ERROR(mod={}): expected AnimVar '{}' == {} after write, but got {} "
-                                "(graph may have rejected the value)",
-                        mod.c_str(), aa_var, i_set, i_result),
-                    "", aa_debug, true);
+                auto long_report = std::format("FNIS AA ERROR(mod={}): expected AnimVar '{}' == {} after write, but got {} (graph may have rejected the value)", mod.c_str(), aa_var, i_set, i_result);
+                AAReport_impl(long_report, "", aa_debug, true);
                 return 0;
             }
 
-            AAReport_impl(
-                std::format("FNIS AA(mod={}): set AnimVar '{}' = {} on actor '{}'",
-                    mod.c_str(), aa_var, i_set, actor_name),
-                std::format("{}: {} {} {}", mod.c_str(), actor_name, aa_var, i_set),
-                aa_debug, false);
-
+            auto long_report = std::format("FNIS AA(mod={}): set AnimVar '{}' = {} on actor '{}'", mod.c_str(), aa_var, i_set, actor_name);
+            auto short_report = std::format("{}: {} {} {}", mod.c_str(), actor_name, aa_var, i_set);
+            AAReport_impl(long_report, short_report, aa_debug, false);
             return i_set;
         }
 
@@ -147,29 +118,11 @@ namespace FNIS {
         // VersionCompare
         // ---------------------------------------------------------------------------
 
-        // int FNIS.VersionCompare(int iCompMajor, int iCompMinor1, int iCompMinor2, bool abCreature)
-        //   0  = match
-        //   1  = installed is newer
-        //  -1  = installed is older / not present
-        static int32_t VersionCompare(
-            RE::StaticFunctionTag*,
-            int32_t comp_major,
-            int32_t comp_minor1,
-            int32_t comp_minor2,
-            bool    creature) {
-            SPDLOG_DEBUG("call VersionCompare(comp_major={}, comp_minor1={}, comp_minor2={}, creature={})",
-                comp_major, comp_minor1, comp_minor2, creature);
-            const auto& v = creature ? g_config.creature_version : g_config.version;
-            if (v.flags == 3)
-                return -1;  // not installed
-
-            if (v.major != comp_major)
-                return v.major > comp_major ? 1 : -1;
-            if (v.minor1 != comp_minor1)
-                return v.minor1 > comp_minor1 ? 1 : -1;
-            if (v.minor2 != comp_minor2)
-                return v.minor2 > comp_minor2 ? 1 : -1;
-            return 0;
+        /// `int FNIS.VersionCompare(int iCompMajor, int iCompMinor1, int iCompMinor2, bool abCreature)`
+        int32_t VersionCompare(RE::StaticFunctionTag*, int32_t comp_major, int32_t comp_minor1, int32_t comp_minor2, bool creature) {
+            SPDLOG_DEBUG("call VersionCompare(comp_major={}, comp_minor1={}, comp_minor2={}, creature={})", comp_major, comp_minor1, comp_minor2, creature);
+            const auto& ver = creature ? g_config.creature_version : g_config.version;
+            return fnis_version_comp(ver, comp_major, comp_minor1, comp_minor2);
         }
 
         // ---------------------------------------------------------------------------
@@ -209,11 +162,7 @@ namespace FNIS {
             SPDLOG_DEBUG("call IsRelease(creature={})", creature);
             return GetFlagsInner(creature) == 0;
         }
-    }  // anonymous namespace
-
-    // ---------------------------------------------------------------------------
-    // Registration
-    // ---------------------------------------------------------------------------
+    }
 
     bool Register(RE::BSScript::IVirtualMachine* vm) {
         SPDLOG_INFO("Registering FNIS native.");
@@ -229,8 +178,7 @@ namespace FNIS {
         vm->RegisterFunction("GetFlags", "FNIS", GetFlags);
         vm->RegisterFunction("IsRelease", "FNIS", IsRelease);
 
-        SPDLOG_INFO("FNIS native overrides registered");
+        SPDLOG_INFO("FNIS native overrides registered.");
         return true;
     }
-
-}  // namespace FNIS
+}

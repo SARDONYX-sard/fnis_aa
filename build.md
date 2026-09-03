@@ -25,7 +25,7 @@ cargo build --release;xmake build -y fnis_aa
 or
 
 ```shell
-xmake build -y fnis_aa && xmake install -o "D:\GAME\ModOrganizer Skyrim SE\mods\fnis_aa" fnis_aa
+xmake build -y fnis_aa && xmake install -o "D:\GAME\ModOrganizer Skyrim SE\mods\Dyn FNIS AA Functions" fnis_aa
 ```
 
 ## Install

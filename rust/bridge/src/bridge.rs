@@ -1,7 +1,7 @@
-#[cxx::bridge(namespace = "bridge")]
+#[cxx::bridge(namespace = "fnis_aa::bridge")]
 pub(crate) mod ffi {
     extern "Rust" {
-        fn bridge_init();
+        fn init();
     }
 
     #[allow(unused)]
@@ -23,8 +23,9 @@ pub(crate) mod ffi {
     }
 }
 
-fn bridge_init() {
-    crate::log_trace!("bridge_init() has been called.");
+/// rust
+fn init() {
+    crate::log_trace!("rust bridge_init() has been called.");
 }
 
 #[cfg(test)]

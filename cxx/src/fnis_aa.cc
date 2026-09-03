@@ -1,14 +1,14 @@
 #include "config.hh"
 
-namespace FNIS_aa {
+namespace fnis_aa::FNIS_aa {
     namespace {
-        using namespace ::config;
+        using namespace fnis_aa::config;
 
         /// use ref version function
         /// This is for Papyrus compatibility. (However, internally, I'd prefer to use references whenever possible.)
         ///
         /// - `animGroup`: `_1hmeqp`
-        static bool SetAnimGroupEX_inner(
+        static bool SetAnimGroupEX_common(
             RE::Actor*               ac,
             const RE::BSFixedString& animGroup,
             int32_t                  base,
@@ -53,7 +53,7 @@ namespace FNIS_aa {
             bool              debugOutput) {
             SPDLOG_DEBUG("call SetAnimGroup({{ actor(FormID): {:X}, animGroup: \"{}\", base: {}, number: {}, mod: \"{}\", skipForce3D: false }})",
                 ac ? ac->GetFormID() : 0, animGroup.c_str(), base, number, mod.c_str());
-            return SetAnimGroupEX_inner(ac, animGroup, base, number, mod, debugOutput, false);
+            return SetAnimGroupEX_common(ac, animGroup, base, number, mod, debugOutput, false);
         }
 
         // bool FNIS_aa.SetAnimGroupEX(actor, animGroup, base, number, mod, debugOutput, skipForce3D)
@@ -68,18 +68,14 @@ namespace FNIS_aa {
             bool              skipForce3D) {
             SPDLOG_DEBUG("call SetAnimGroupEX {{ actor(FormID): {:X}, animGroup: \"{}\", base: {}, number: {}, mod: \"{}\", skipForce3D: {} }}",
                 ac ? ac->GetFormID() : 0, animGroup.c_str(), base, number, mod.c_str(), skipForce3D);
-            return SetAnimGroupEX_inner(ac, animGroup, base, number, mod, debugOutput, skipForce3D);
+            return SetAnimGroupEX_common(ac, animGroup, base, number, mod, debugOutput, skipForce3D);
         }
 
         /// `int FNIS_aa.GetAAmodID(string myAAprefix, string mod, bool debugOutput) global`
         ///
         /// # Requirements specified by FNIS
         /// - If not present, return -1.
-        static int32_t GetAAmodID(
-            RE::StaticFunctionTag*,
-            RE::BSFixedString prefix,
-            RE::BSFixedString mod,
-            bool) {
+        static int32_t GetAAmodID(RE::StaticFunctionTag*, RE::BSFixedString prefix, RE::BSFixedString mod, bool) {
             const auto& list = g_config.prefix_list;
             for (int32_t i = 0; i < static_cast<int32_t>(list.size()); ++i) {
                 if (list[i] == prefix) {
@@ -91,15 +87,11 @@ namespace FNIS_aa {
             return -1;
         }
 
-        // int FNIS_aa.GetGroupBaseValue(int AAmodID, int AAgroupID, string mod, bool debugOutput)
+        /// `int FNIS_aa.GetGroupBaseValue(int AAmodID, int AAgroupID, string mod, bool debugOutput)`
+        ///
         /// Requirements specified by FNIS
         /// - If not found or invalid value, return 0.
-        static int32_t GetGroupBaseValue(
-            RE::StaticFunctionTag*,
-            int32_t           mod_id,
-            int32_t           group_id,
-            RE::BSFixedString mod,
-            bool) {
+        static int32_t GetGroupBaseValue(RE::StaticFunctionTag*, int32_t mod_id, int32_t group_id, RE::BSFixedString mod, bool) {
             SPDLOG_DEBUG("call GetGroupBaseValue(mod_id={}, group_id={}, mod=\"{}\")", mod_id, group_id, mod.c_str());
 
             if (mod_id < 0 || mod_id > 29) {
@@ -124,12 +116,8 @@ namespace FNIS_aa {
             return 0;
         }
 
-        // int[] FNIS_aa.GetAllGroupBaseValues(int AAmodID, string mod, bool debugOutput)
-        static std::vector<int32_t> GetAllGroupBaseValues(
-            RE::StaticFunctionTag*,
-            int32_t           mod_id,
-            RE::BSFixedString mod,
-            bool              debugOutput) {
+        /// `int[] FNIS_aa.GetAllGroupBaseValues(int AAmodID, string mod, bool debugOutput)`
+        static std::vector<int32_t> GetAllGroupBaseValues(RE::StaticFunctionTag*, int32_t mod_id, RE::BSFixedString mod, bool debugOutput) {
             std::vector<int32_t> result(54, 0);  // == vec![0; 54];
             SPDLOG_WARN("GetAllGroupBaseValues(mod_id={}, mod=\"{}\", debugOutput={})", mod_id, mod.c_str(), debugOutput);
 
@@ -196,6 +184,7 @@ namespace FNIS_aa {
         }
     }
 
+    // NOLINTBEGIN(misc-use-internal-linkage)
     bool Register(RE::BSScript::IVirtualMachine* vm) {
         SPDLOG_INFO("Registering FNIS_aa native...");
 
@@ -207,7 +196,8 @@ namespace FNIS_aa {
         vm->RegisterFunction("GetInstallationCRC", "FNIS_aa", GetInstallationCRC);
         vm->RegisterFunction("GetAAsets", "FNIS_aa", GetAAsets);
 
-        SPDLOG_INFO("FNIS_aa native overrides registered");
+        SPDLOG_INFO("FNIS_aa native overrides registered.");
         return true;
     }
+    // NOLINTEND(misc-use-internal-linkage)
 }

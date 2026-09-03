@@ -1,11 +1,12 @@
-#include "config.hh"
-
 #include <catch2/catch_test_macros.hpp>
 
-using json = nlohmann::json;
-using namespace ::config;
+#include "config.hh"
 
+// NOLINTBEGIN(cert-err58-cpp)
 namespace {
+    using json = nlohmann::json;
+    using namespace fnis_aa::config;
+
     static const char* kValidJson = R"({
     "log_level": "info",
     "crc": 1520082533,
@@ -21,8 +22,8 @@ namespace {
 })";
 
     struct ValidFixture {
-        ParsedConfig cfg;
-        ValidFixture() : cfg(parse_config(json::parse(kValidJson))) {
+        Config cfg;
+        ValidFixture() : cfg(Config::from_json(json::parse(kValidJson))) {
             UNSCOPED_INFO(cfg.debug_str());
             spdlog::info("ValidFixture:\n{}", cfg.debug_str());
         }
@@ -31,6 +32,7 @@ namespace {
     TEST_CASE_METHOD(ValidFixture, "crc and version") {
         CHECK(cfg.crc == 1520082533);
         CHECK(cfg.version_str == "V07.06.00.0");
+        CHECK(cfg.version == FNISVersion::latest());
     }
 
     TEST_CASE_METHOD(ValidFixture, "mod count and set count") {
@@ -54,17 +56,17 @@ namespace {
     }
 
     TEST_CASE("missing crc defaults to 0") {
-        const auto cfg = parse_config(json::parse(R"({"mods":[]})"));
+        const auto cfg = Config::from_json(json::parse(R"({"mods":[]})"));
         CHECK(cfg.crc == 0);
     }
 
     TEST_CASE("missing fnis_version defaults") {
-        const auto cfg = parse_config(json::parse(R"({"mods":[]})"));
+        const auto cfg = Config::from_json(json::parse(R"({"mods":[]})"));
         CHECK(cfg.version_str == "V07.06.00.0");
     }
 
     TEST_CASE("unknown group is skipped") {
-        const auto cfg = parse_config(json::parse(R"({
+        const auto cfg = Config::from_json(json::parse(R"({
         "crc": 0, "fnis_version": "V07.06.00.0",
         "mods": [{ "prefix": "x", "name": "x", "mod_id": 0,
                    "groups": [{ "name": "_unknown_group", "base": 1 }] }]
@@ -72,3 +74,4 @@ namespace {
         CHECK(cfg.set_count == 0);
     }
 }
+// NOLINTEND(cert-err58-cpp)

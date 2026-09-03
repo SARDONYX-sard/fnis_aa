@@ -1,8 +1,8 @@
 #include "config.hh"
 
-namespace FNIS_aa2 {
+namespace fnis_aa::FNIS_aa2 {
     namespace {
-        using namespace ::config;
+        using namespace fnis_aa::config;
 
         /// Replaces `Int Function GetAAnumber(Int listType) Global`
         /// listType=0 -> mod count, listType=1 -> set count, listType=2 -> crc
@@ -24,10 +24,8 @@ namespace FNIS_aa2 {
         /// How FNIS Templates Work
         /// - The array from `mm0` to `mm30` is the default value.
         /// - Every time an FNIS Alternate Animation mod is added, it replaces the values starting from `mm0`.
-        static std::vector<RE::BSFixedString> GetAAprefixList(
-            RE::StaticFunctionTag*, int32_t nMods, RE::BSFixedString mod, bool debugOutput) {
-            SPDLOG_DEBUG("GetAAprefixList(nMods={}, mod={}, debugOutput={}) has been called.",
-                nMods, mod.c_str(), debugOutput);
+        std::vector<RE::BSFixedString> GetAAprefixList(RE::StaticFunctionTag*, int32_t nMods, RE::BSFixedString mod, bool debugOutput) {
+            SPDLOG_DEBUG("GetAAprefixList(nMods={}, mod={}, debugOutput={}) has been called.", nMods, mod.c_str(), debugOutput);
             return g_config.prefix_list;
         }
 
@@ -47,8 +45,7 @@ namespace FNIS_aa2 {
         /// If the list is unsorted, any group_id lower than a previously seen entry
         /// will be silently missed and GetGroupBaseValue() returns 0 (vanilla slot),
         /// causing all animation variable sets for that group to be no-ops.
-        static std::vector<RE::BSFixedString> GetAAsetList(
-            RE::StaticFunctionTag*, int32_t nSets, RE::BSFixedString mod, bool debugOutput) {
+        std::vector<RE::BSFixedString> GetAAsetList(RE::StaticFunctionTag*, int32_t nSets, RE::BSFixedString mod, bool debugOutput) {
             SPDLOG_DEBUG("GetAAsetList(nSets={}, mod={}, debugOutput={}) has been called.",
                 nSets, mod.c_str(), debugOutput);
 
@@ -72,6 +69,7 @@ namespace FNIS_aa2 {
         }
     }
 
+    // NOLINTBEGIN(misc-use-internal-linkage)
     bool Register(RE::BSScript::IVirtualMachine* vm) {
         SPDLOG_INFO("Registering FNIS_aa2 native.");
 
@@ -82,7 +80,8 @@ namespace FNIS_aa2 {
         vm->RegisterFunction("Get", "FNISVersion", GetVersion);
         vm->RegisterFunction("Get", "FNISVersionGenerated", GetVersion);
 
-        SPDLOG_INFO("FNIS_aa2 native overrides registered");
+        SPDLOG_INFO("FNIS_aa2 native overrides registered.");
         return true;
     }
-}  // namespace FNIS_aa
+    // NOLINTEND(misc-use-internal-linkage)
+}
