@@ -120,11 +120,13 @@ Example: `V07.06.00.0`, `V07.06.00.2`
 ## Slot Layout & Base calculation
 
 ```txt
-slot 0..N     mod A  (base=1, slot_count=N)
-slot N..M   mod B  (base=N+1, slot_count=M-N)
+slot 0..N mod A (base=1, slot_count=N)
+slot N..M mod B (base=N+1, slot_count=M-N)
 ```
 
-`GetAAprefixList` returns a string encoded as `{mod_id:2}{group_id:2}{base:2}`.
+## encoded_string
+
+`FNIS_aa2.GetAAsetList` returns a string encoded as `{mod_id:2}{group_id:2}{base:2}`.
 
 Since each digit is two characters long, the total cannot exceed 99.
 

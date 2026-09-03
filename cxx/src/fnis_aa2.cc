@@ -46,8 +46,7 @@ namespace fnis_aa::FNIS_aa2 {
         /// will be silently missed and GetGroupBaseValue() returns 0 (vanilla slot),
         /// causing all animation variable sets for that group to be no-ops.
         std::vector<RE::BSFixedString> GetAAsetList(RE::StaticFunctionTag*, int32_t nSets, RE::BSFixedString mod, bool debugOutput) {
-            SPDLOG_DEBUG("GetAAsetList(nSets={}, mod={}, debugOutput={}) has been called.",
-                nSets, mod.c_str(), debugOutput);
+            SPDLOG_DEBUG("GetAAsetList(nSets={}, mod={}, debugOutput={}) has been called.", nSets, mod.c_str(), debugOutput);
 
             std::vector<RE::BSFixedString> result(128);
             const auto&                    sets = g_config.set_list;
