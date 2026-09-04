@@ -1,3 +1,4 @@
+#include "config.hh"
 #include "fnis_aa.hh"
 
 namespace fnis_aa::FNIS {
@@ -22,6 +23,8 @@ namespace fnis_aa::FNIS {
                 }
             }
         }
+
+        // NOLINTBEGIN(performance-unnecessary-value-param): To papyrus FFI signature compatibility
 
         /// `void FNIS.AAReport(string longReport, string shortReport, int AAdebug, bool isError)`
         void AAReport(RE::StaticFunctionTag*, RE::BSFixedString long_report, RE::BSFixedString short_report, int32_t aa_debug, bool is_error) {
@@ -108,10 +111,10 @@ namespace fnis_aa::FNIS {
             return true;  // By json. Always return true.
         }
 
-        // string FNIS.VersionToString(bool abCreature = false)
+        // `string FNIS.VersionToString(bool abCreature = false)`
         static RE::BSFixedString VersionToString(RE::StaticFunctionTag*, bool creature) {
             SPDLOG_DEBUG("call VersionToString(creature={})", creature);
-            return creature ? g_config.creature_version_str : g_config.version_str;
+            return g_config.get_version_str(creature);
         }
 
         // ---------------------------------------------------------------------------
@@ -121,8 +124,7 @@ namespace fnis_aa::FNIS {
         /// `int FNIS.VersionCompare(int iCompMajor, int iCompMinor1, int iCompMinor2, bool abCreature)`
         int32_t VersionCompare(RE::StaticFunctionTag*, int32_t comp_major, int32_t comp_minor1, int32_t comp_minor2, bool creature) {
             SPDLOG_DEBUG("call VersionCompare(comp_major={}, comp_minor1={}, comp_minor2={}, creature={})", comp_major, comp_minor1, comp_minor2, creature);
-            const auto& ver = creature ? g_config.creature_version : g_config.version;
-            return fnis_version_comp(ver, comp_major, comp_minor1, comp_minor2);
+            return g_config.get_version(creature).compare(comp_major, comp_minor1, comp_minor2);
         }
 
         // ---------------------------------------------------------------------------
@@ -132,36 +134,34 @@ namespace fnis_aa::FNIS {
         /// int FNIS.GetMajor(bool abCreature = false)
         static int32_t GetMajor(RE::StaticFunctionTag*, bool creature) {
             SPDLOG_DEBUG("call GetMajor(creature={})", creature);
-            return creature ? g_config.creature_version.major : g_config.version.major;
+            return g_config.get_version(creature).major;
         }
 
         /// int FNIS.GetMinor1(bool abCreature = false)
         static int32_t GetMinor1(RE::StaticFunctionTag*, bool creature) {
             SPDLOG_DEBUG("call GetMinor1(creature={})", creature);
-            return creature ? g_config.creature_version.minor1 : g_config.version.minor1;
+            return g_config.get_version(creature).minor1;
         }
 
         /// int FNIS.GetMinor2(bool abCreature = false)
         static int32_t GetMinor2(RE::StaticFunctionTag*, bool creature) {
             SPDLOG_DEBUG("call GetMinor2(creature={})", creature);
-            return creature ? g_config.creature_version.minor2 : g_config.version.minor2;
-        }
-
-        inline static int32_t GetFlagsInner(bool creature) {
-            return creature ? g_config.creature_version.flags : g_config.version.flags;
+            return g_config.get_version(creature).minor2;
         }
 
         /// int FNIS.GetFlags(bool abCreature = false)
         static int32_t GetFlags(RE::StaticFunctionTag*, bool creature) {
             SPDLOG_DEBUG("call GetFlags(creature={})", creature);
-            return GetFlagsInner(creature);
+            return g_config.get_version(creature).flags;
         }
 
         /// bool FNIS.IsRelease(bool abCreature = false)
         static bool IsRelease(RE::StaticFunctionTag*, bool creature) {
             SPDLOG_DEBUG("call IsRelease(creature={})", creature);
-            return GetFlagsInner(creature) == 0;
+            return g_config.get_version(creature).flags == 0;
         }
+
+        // NOLINTEND(performance-unnecessary-value-param)
     }
 
     bool Register(RE::BSScript::IVirtualMachine* vm) {

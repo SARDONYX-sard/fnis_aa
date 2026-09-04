@@ -2,6 +2,7 @@
 
 namespace fnis_aa::FNIS_aa2 {
     namespace {
+        // NOLINTBEGIN(performance-unnecessary-value-param): To papyrus FFI signature compatibility
         using namespace fnis_aa::config;
 
         /// Replaces `Int Function GetAAnumber(Int listType) Global`
@@ -66,6 +67,8 @@ namespace fnis_aa::FNIS_aa2 {
         static RE::BSFixedString GetVersion(RE::StaticFunctionTag*) {
             return g_config.version_str;
         }
+
+        // NOLINTEND(performance-unnecessary-value-param)
     }
 
     // NOLINTBEGIN(misc-use-internal-linkage)

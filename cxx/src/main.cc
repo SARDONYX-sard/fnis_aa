@@ -1,5 +1,6 @@
 #include <bridge/src/bridge.rs.h>
 
+#include "config.hh"
 #include "fnis_aa.hh"
 
 namespace {
@@ -13,7 +14,7 @@ namespace {
         case SKSE::MessagingInterface::kNewGame:     // Fired when starting a new game.
         case SKSE::MessagingInterface::kDataLoaded:  // Fired after all game data has loaded.
             {
-                fnis_aa::config::OnLoaded();
+                fnis_aa::config::NewGlobalConfig();
                 fnis_aa::menu::UpdateSnapshot();
                 return;
             }

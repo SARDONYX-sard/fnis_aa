@@ -5,6 +5,7 @@
 // NOLINTBEGIN(cert-err58-cpp)
 namespace {
     using json = nlohmann::json;
+    using namespace fnis_aa;
     using namespace fnis_aa::config;
 
     static const char* kValidJson = R"({

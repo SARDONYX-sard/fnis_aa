@@ -8,7 +8,7 @@ namespace fnis_aa::FNIS_aa {
         /// This is for Papyrus compatibility. (However, internally, I'd prefer to use references whenever possible.)
         ///
         /// - `animGroup`: `_1hmeqp`
-        static bool SetAnimGroupEX_common(
+        static bool SetAnimGroupEX_impl(
             RE::Actor*               ac,
             const RE::BSFixedString& animGroup,
             int32_t                  base,
@@ -42,7 +42,9 @@ namespace fnis_aa::FNIS_aa {
             return true;
         }
 
-        // bool FNIS_aa.SetAnimGroup(actor, animGroup, base, number, mod, debugOutput)
+        // NOLINTBEGIN(performance-unnecessary-value-param)
+
+        /// `bool FNIS_aa.SetAnimGroup(actor, animGroup, base, number, mod, debugOutput)`
         static bool SetAnimGroup(
             RE::StaticFunctionTag*,
             RE::Actor*        ac,
@@ -53,7 +55,7 @@ namespace fnis_aa::FNIS_aa {
             bool              debugOutput) {
             SPDLOG_DEBUG("call SetAnimGroup({{ actor(FormID): {:X}, animGroup: \"{}\", base: {}, number: {}, mod: \"{}\", skipForce3D: false }})",
                 ac ? ac->GetFormID() : 0, animGroup.c_str(), base, number, mod.c_str());
-            return SetAnimGroupEX_common(ac, animGroup, base, number, mod, debugOutput, false);
+            return SetAnimGroupEX_impl(ac, animGroup, base, number, mod, debugOutput, false);
         }
 
         // bool FNIS_aa.SetAnimGroupEX(actor, animGroup, base, number, mod, debugOutput, skipForce3D)
@@ -68,7 +70,7 @@ namespace fnis_aa::FNIS_aa {
             bool              skipForce3D) {
             SPDLOG_DEBUG("call SetAnimGroupEX {{ actor(FormID): {:X}, animGroup: \"{}\", base: {}, number: {}, mod: \"{}\", skipForce3D: {} }}",
                 ac ? ac->GetFormID() : 0, animGroup.c_str(), base, number, mod.c_str(), skipForce3D);
-            return SetAnimGroupEX_common(ac, animGroup, base, number, mod, debugOutput, skipForce3D);
+            return SetAnimGroupEX_impl(ac, animGroup, base, number, mod, debugOutput, skipForce3D);
         }
 
         /// `int FNIS_aa.GetAAmodID(string myAAprefix, string mod, bool debugOutput) global`
@@ -141,12 +143,12 @@ namespace fnis_aa::FNIS_aa {
             return result;
         }
 
-        // int FNIS_aa.GetInstallationCRC()
+        // `int FNIS_aa.GetInstallationCRC()`
         static int32_t GetInstallationCRC(RE::StaticFunctionTag*) {
             return g_config.crc;
         }
 
-        // void FNIS_aa.GetAAsets(int nSets, int[] GroupId, int[] ModId, int[] Base, int[] Index, string mod, bool debugOutput)
+        // `void FNIS_aa.GetAAsets(int nSets, int[] GroupId, int[] ModId, int[] Base, int[] Index, string mod, bool debugOutput)`
         static void GetAAsets(
             RE::StaticFunctionTag*,
             int32_t                            n_sets,
@@ -182,6 +184,8 @@ namespace fnis_aa::FNIS_aa {
                 }
             }
         }
+
+        // NOLINTEND(performance-unnecessary-value-param)
     }
 
     // NOLINTBEGIN(misc-use-internal-linkage)

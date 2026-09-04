@@ -178,12 +178,12 @@ namespace fnis_aa::menu {
              * Papyrus variables are not inspected here.
              */
 
-            if (config.version.is_err()) {
+            if (config.version.is_invalid()) {
                 add_diagnostic(snapshot, DiagnosticLevel::error,
                     std::format("Invalid FNIS version: {}", config.version_str));
             }
 
-            if (config.creature_version.is_err()) {
+            if (config.creature_version.is_invalid()) {
                 add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Invalid creature FNIS version: {}", config.creature_version_str));
             }
 

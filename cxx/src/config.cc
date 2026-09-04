@@ -102,7 +102,7 @@ namespace fnis_aa::config {
             if (result.has_value()) {
                 output = result.value();
             } else {
-                SPDLOG_ERROR("FNIS: failed to parse {}('{}'). {}", name, input, fnis_version_error_to_str(result.error()));
+                SPDLOG_ERROR("FNIS: failed to parse {}('{}'). {}", name, input, result.error().to_static_str());
             }
         }
     }
