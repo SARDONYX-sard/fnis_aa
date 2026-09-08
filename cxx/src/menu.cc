@@ -1,12 +1,12 @@
-#include "pch.hh"
+#include <SKSEMenuFramework.h>
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
-#include "SKSEMenuFramework.h"
 #include "alt_group_table.hh"
 #include "config.hh"
 
@@ -21,11 +21,6 @@ namespace fnis_aa::menu {
             success,
             warning,
             error,
-        };
-
-        struct Diagnostic {
-            DiagnosticLevel level;
-            std::string     message;
         };
 
         struct ModEntry {
@@ -43,21 +38,16 @@ namespace fnis_aa::menu {
         };
 
         struct Snapshot {
-            int32_t crc = 0;
-            int32_t mod_count = 0;
-            int32_t set_count = 0;
-
+            int32_t     crc = 0;
+            int32_t     mod_count = 0;
+            int32_t     set_count = 0;
             std::string version;
             std::string creature_version;
 
-            std::vector<ModEntry>   mods;
-            std::vector<SetEntry>   sets;
-            std::vector<Diagnostic> diagnostics;
-
-            bool has_errors = false;
+            std::vector<ModEntry> mods;
+            std::vector<SetEntry> sets;
         };
 
-        /* The snapshot is constructed after config::OnLoaded(). */
         Snapshot g_snapshot;
 
         [[nodiscard]] std::string_view group_name(int32_t group_id) noexcept {
@@ -71,18 +61,14 @@ namespace fnis_aa::menu {
         }
 
         [[nodiscard]] const char* diagnostic_label(
-            DiagnosticLevel level) noexcept {
+            config::DiagnosticLevel level) noexcept {
             switch (level) {
-            case DiagnosticLevel::info:
-                return "INFO";
-
-            case DiagnosticLevel::success:
-                return "OK";
-
-            case DiagnosticLevel::warning:
+            case config::DiagnosticLevel::success:
+                return "SUCCESS";
+            case config::DiagnosticLevel::warning:
                 return "WARN";
 
-            case DiagnosticLevel::error:
+            case config::DiagnosticLevel::error:
                 return "ERROR";
             }
 
@@ -90,54 +76,81 @@ namespace fnis_aa::menu {
         }
 
         [[nodiscard]] ImGuiMCP::ImVec4 diagnostic_color(
-            DiagnosticLevel level) noexcept {
+            config::DiagnosticLevel level) noexcept {
             switch (level) {
-            case DiagnosticLevel::success:
+            case config::DiagnosticLevel::success:
                 return { .x = 0.30f, .y = 0.85f, .z = 0.35f, .w = 1.0f };
 
-            case DiagnosticLevel::warning:
+            case config::DiagnosticLevel::warning:
                 return { .x = 0.95f, .y = 0.75f, .z = 0.20f, .w = 1.0f };
 
-            case DiagnosticLevel::error:
+            case config::DiagnosticLevel::error:
                 return { .x = 0.95f, .y = 0.25f, .z = 0.25f, .w = 1.0f };
-
-            case DiagnosticLevel::info:
-                return { .x = 0.70f, .y = 0.75f, .z = 0.80f, .w = 1.0f };
             }
 
             return { .x = 1.0f, .y = 1.0f, .z = 1.0f, .w = 1.0f };
         }
 
-        void add_diagnostic(
-            Snapshot&       snapshot,
-            DiagnosticLevel level,
-            std::string     message) {
-            if (level == DiagnosticLevel::error) {
-                snapshot.has_errors = true;
-            }
-
-            snapshot.diagnostics.push_back({
-                .level = level,
-                .message = std::move(message),
-            });
+        inline void draw_status(config::DiagnosticLevel level, const char* label, const char* message) {
+            ImGuiMCP::TextColored(diagnostic_color(level), "[%s] %s", label, message);
         }
 
-        [[nodiscard]] Snapshot build_snapshot(const config::Config& config) {
+        inline void draw_status(config::DiagnosticLevel level, const char* message) {
+            draw_status(level, diagnostic_label(level), message);
+        }
+
+        /// # Safety
+        ///
+        /// The strings supplied in `rows` must remain valid for the duration
+        /// of this function call and must be null-terminated.
+        void draw_property_table(std::initializer_list<std::pair<std::string_view, std::string_view>> rows) {
+            if (!ImGuiMCP::BeginTable(
+                    "PropertyTable",
+                    2,
+                    ImGuiTableFlags_Reorderable |
+                        ImGuiTableFlags_Resizable |
+                        ImGuiTableFlags_Borders |
+                        ImGuiTableFlags_RowBg |
+                        ImGuiTableFlags_SizingStretchProp)) {
+                return;
+            }
+
+            ImGuiMCP::TableSetupColumn("[Description]", ImGuiTableColumnFlags_WidthFixed, 270.0f);
+            ImGuiMCP::TableSetupColumn("[Value]", ImGuiTableColumnFlags_WidthStretch);
+
+            ImGuiMCP::TableHeadersRow();
+
+            for (const auto& [description, value] : rows) {
+                ImGuiMCP::TableNextRow();
+
+                ImGuiMCP::TableNextColumn();
+
+                // NOLINTBEGIN(bugprone-suspicious-stringview-data-usage)
+                ImGuiMCP::TextUnformatted(description.data());
+
+                ImGuiMCP::TableNextColumn();
+
+                ImGuiMCP::TextUnformatted(value.data());
+                // NOLINTEND(bugprone-suspicious-stringview-data-usage)
+            }
+
+            ImGuiMCP::EndTable();
+        }
+
+        [[nodiscard]] Snapshot build_snapshot(
+            const config::Config& config) {
             Snapshot snapshot;
 
             snapshot.crc = config.crc;
             snapshot.mod_count = config.mod_count;
             snapshot.set_count = config.set_count;
-
             snapshot.version = config.version_str;
             snapshot.creature_version = config.creature_version_str;
 
             snapshot.mods.reserve(config.prefix_list.size());
             snapshot.sets.reserve(config.set_list.size());
 
-            for (size_t mod_id = 0;
-                mod_id < config.prefix_list.size();
-                ++mod_id) {
+            for (size_t mod_id = 0; mod_id < config.prefix_list.size(); ++mod_id) {
                 const auto& prefix = config.prefix_list[mod_id];
 
                 if (prefix.empty()) {
@@ -170,100 +183,7 @@ namespace fnis_aa::menu {
                 });
             }
 
-            /*
-             * Validate the immutable snapshot.
-             *
-             * These checks deliberately describe only information that is
-             * actually represented by ParsedConfig. Runtime actor state and
-             * Papyrus variables are not inspected here.
-             */
-
-            if (config.version.is_invalid()) {
-                add_diagnostic(snapshot, DiagnosticLevel::error,
-                    std::format("Invalid FNIS version: {}", config.version_str));
-            }
-
-            if (config.creature_version.is_invalid()) {
-                add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Invalid creature FNIS version: {}", config.creature_version_str));
-            }
-
-            if (config.mod_count < 0) {
-                add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Invalid negative mod count: {}", config.mod_count));
-            }
-
-            if (config.set_count < 0) {
-                add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Invalid negative set count: {}", config.set_count));
-            }
-
-            if (config.set_count != static_cast<int32_t>(config.set_list.size())) {
-                add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Set count mismatch: declared={}, actual={}", config.set_count, config.set_list.size()));
-            }
-
-            for (size_t index = 0; index < config.set_list.size(); ++index) {
-                const auto& set = config.set_list[index];
-
-                if (set.mod_id < 0) {
-                    add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Entry {} has an invalid mod id: {}", index, set.mod_id));
-                }
-
-                if (set.group_id < 0) {
-                    add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Entry {} has an invalid group id: {}", index, set.group_id));
-                }
-
-                if (set.base < 0) {
-                    add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Entry {} has an invalid base: {}", index, set.base));
-                }
-
-                if (set.mod_id >= 0 && static_cast<size_t>(set.mod_id) >= config.prefix_list.size()) {
-                    add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Entry {} references missing prefix for mod id {}", index, set.mod_id));
-                }
-
-                if (group_name(set.group_id).empty()) {
-                    add_diagnostic(snapshot, DiagnosticLevel::error, std::format("Entry {} references unknown group id {}", index, set.group_id));
-                }
-            }
-
-            if (snapshot.diagnostics.empty()) {
-                add_diagnostic(snapshot, DiagnosticLevel::success, "Configuration is internally consistent.");
-            }
-
             return snapshot;
-        }
-
-        inline void draw_status(DiagnosticLevel level, const char* label, const char* message) {
-            ImGuiMCP::TextColored(diagnostic_color(level), "[%s] %s", label, message);
-        }
-
-        inline void draw_status(DiagnosticLevel level, const char* message) {
-            draw_status(level, diagnostic_label(level), message);
-        }
-
-        /// # Safety
-        ///
-        /// Must null terminated key .
-        void draw_property_table(std::initializer_list<std::pair<std::string_view, std::string_view>> rows) {
-            if (!ImGuiMCP::BeginTable("PropertyTable", 2,
-                    ImGuiTableFlags_Reorderable |
-                        ImGuiTableFlags_Resizable |
-                        ImGuiTableFlags_Borders |
-                        ImGuiTableFlags_RowBg |
-                        ImGuiTableFlags_SizingStretchProp)) {
-                return;
-            }
-            ImGuiMCP::TableSetupColumn("[Description]", ImGuiTableColumnFlags_WidthFixed, 270.0f);
-            ImGuiMCP::TableSetupColumn("[Value]", ImGuiTableColumnFlags_WidthStretch);
-            ImGuiMCP::TableHeadersRow();
-            for (const auto& [description, value] : rows) {
-                ImGuiMCP::TableNextRow();
-                ImGuiMCP::TableNextColumn();
-
-                // NOLINTBEGIN(bugprone-suspicious-stringview-data-usage): Safety: as long as null terminated
-                ImGuiMCP::TextUnformatted(description.data());
-                ImGuiMCP::TableNextColumn();
-                ImGuiMCP::TextUnformatted(value.data());
-                // NOLINTEND(bugprone-suspicious-stringview-data-usage)
-            }
-            ImGuiMCP::EndTable();
         }
 
         void draw_log_level() {
@@ -278,13 +198,15 @@ namespace fnis_aa::menu {
             };
 
             auto& log_level = config::g_config.log_level;
-            int   current = static_cast<int>(log_level);
+
+            int current = static_cast<int>(log_level);
 
             if (ImGuiMCP::Combo("Log Level", &current, kLogLevels.data(), static_cast<int>(kLogLevels.size()))) {
                 log_level = static_cast<spdlog::level::level_enum>(current);
                 spdlog::set_level(log_level);
                 SPDLOG_INFO("Logger level changed to {}", spdlog::level::to_string_view(log_level));
             }
+
             if (ImGuiMCP::IsItemHovered()) {
                 ImGuiMCP::SetTooltip(
                     "Log level is read from the 'log_level' key in config.json.\n"
@@ -294,9 +216,15 @@ namespace fnis_aa::menu {
 
         void draw_overview() {
             ImGuiMCP::TextUnformatted("FNIS Alternate Animation");
+
             ImGuiMCP::Separator();
 
-            const std::string configuration = g_snapshot.has_errors ? "Errors detected" : "Loaded";
+            const bool has_errors = std::ranges::any_of(config::g_diagnostics, [](const config::Diagnostic& diagnostic) {
+                return diagnostic.level == config::DiagnosticLevel::error;
+            });
+
+            const std::string configuration = has_errors ? "Errors detected" : "Loaded";
+
             const std::string mods = std::to_string(g_snapshot.mod_count);
             const std::string sets = std::to_string(g_snapshot.set_count);
             const std::string crc = std::format("0x{:08X}", static_cast<uint32_t>(g_snapshot.crc));
@@ -314,10 +242,10 @@ namespace fnis_aa::menu {
             ImGuiMCP::Separator();
             ImGuiMCP::Spacing();
 
-            if (g_snapshot.has_errors) {
-                draw_status(DiagnosticLevel::error, "Configuration contains errors.");
+            if (has_errors) {
+                draw_status(config::DiagnosticLevel::error, "Configuration contains errors.");
             } else {
-                draw_status(DiagnosticLevel::success, "Configuration is valid.");
+                draw_status(config::DiagnosticLevel::success, "Configuration is valid.");
             }
 
             draw_log_level();
@@ -356,17 +284,19 @@ namespace fnis_aa::menu {
 
                 ImGuiMCP::TableNextColumn();
                 ImGuiMCP::Text("%d", mod.mod_id);
+
                 ImGuiMCP::TableNextColumn();
                 ImGuiMCP::Text("%s", mod.prefix.c_str());
 
                 ImGuiMCP::TableNextColumn();
                 ImGuiMCP::Text("%zu", entry_count);
+
                 ImGuiMCP::TableNextColumn();
 
                 if (entry_count != 0) {
-                    draw_status(DiagnosticLevel::success, "OK");
+                    draw_status(config::DiagnosticLevel::success, "OK");
                 } else {
-                    draw_status(DiagnosticLevel::warning, "No groups");
+                    draw_status(config::DiagnosticLevel::warning, "No groups");
                 }
             }
 
@@ -428,19 +358,27 @@ namespace fnis_aa::menu {
 
         void draw_diagnostics() {
             ImGuiMCP::TextUnformatted("Diagnostics");
-
             ImGuiMCP::Separator();
 
-            if (g_snapshot.has_errors) {
-                draw_status(DiagnosticLevel::error, "Configuration contains errors.");
+            const bool has_errors = std::ranges::any_of(config::g_diagnostics, [](const config::Diagnostic& diagnostic) {
+                return diagnostic.level == config::DiagnosticLevel::error;
+            });
+
+            if (has_errors) {
+                draw_status(config::DiagnosticLevel::error, "Configuration contains errors.");
+            } else if (config::g_diagnostics.empty()) {
+                draw_status(config::DiagnosticLevel::success, "No configuration diagnostics.");
             } else {
-                draw_status(DiagnosticLevel::success, "No configuration errors detected.");
+                draw_status(config::DiagnosticLevel::success, "No configuration errors detected.");
             }
 
             ImGuiMCP::Spacing();
 
-            for (const auto& diagnostic : g_snapshot.diagnostics) {
-                draw_status(diagnostic.level, diagnostic_label(diagnostic.level), diagnostic.message.c_str());
+            for (const auto& diagnostic : config::g_diagnostics) {
+                draw_status(
+                    diagnostic.level,
+                    diagnostic_label(diagnostic.level),
+                    diagnostic.message.c_str());
             }
 
             ImGuiMCP::Spacing();
@@ -454,6 +392,7 @@ namespace fnis_aa::menu {
             const std::string snapshot_mods = std::to_string(g_snapshot.mods.size());
             const std::string snapshot_sets = std::to_string(g_snapshot.sets.size());
             const std::string crc = std::format("0x{:08X}", static_cast<uint32_t>(g_snapshot.crc));
+
             draw_property_table({
                 { "Configured Mods", configured_mods },
                 { "Configured Sets", configured_sets },
@@ -497,6 +436,7 @@ namespace fnis_aa::menu {
         if (!SKSEMenuFramework::IsInstalled()) {
             return;
         }
+
         g_snapshot = build_snapshot(config::g_config);
     }
 
