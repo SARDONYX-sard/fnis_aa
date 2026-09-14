@@ -517,7 +517,8 @@ namespace fnis_aa::menu {
 
                     std::string result = "[";
 
-                    const auto count = std::min<RE::BSScript::Array::size_type>(array->size(), 3);
+                    constexpr auto MAX_DISPLAY_COUNT = 10;
+                    const auto     count = std::min<RE::BSScript::Array::size_type>(array->size(), MAX_DISPLAY_COUNT);
 
                     for (RE::BSScript::Array::size_type i = 0; i < count; ++i) {
                         if (i != 0) {
@@ -527,7 +528,7 @@ namespace fnis_aa::menu {
                         result += format_ffi_variable((*array)[i]);
                     }
 
-                    if (array->size() > 10) {
+                    if (array->size() > MAX_DISPLAY_COUNT) {
                         if (count != 0) {
                             result += ", ";
                         }
