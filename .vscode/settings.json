@@ -8,5 +8,7 @@
     "**/.git/objects/**": true,
     "**/.xmake/**": true,
     "**/build/**": true
-  }
+  },
+  "cmake.sourceDirectory": "D:/Programming/cpp/fnis_aa/extern/CommonLibSSE_NG",
+  "cmake.ignoreCMakeListsMissing": true
 }

@@ -33,6 +33,7 @@ Diagnostics:
         cppcoreguidelines-owning-memory, # In Skyrim, there are times when a memory leak is necessary.
         cppcoreguidelines-pro-type-reinterpret-cast,
         cppcoreguidelines-pro-type-vararg,
+        misc-no-recursion,
         misc-non-private-member-variables-in-classes,
         modernize-use-trailing-return-type,
         performance-enum-size,

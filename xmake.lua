@@ -7,4 +7,5 @@ set_warnings("allextra")
 add_rules("mode.debug", "mode.releasedbg")
 set_defaultmode("releasedbg")
 
+includes("./tasks.lua")
 includes("cxx")

@@ -11,6 +11,7 @@
 namespace fnis_aa::config {
 
     enum class DiagnosticLevel : uint8_t {
+        info,
         success,
         warning,
         error,
@@ -77,7 +78,8 @@ namespace fnis_aa::config {
                 "    version: FNISVersion {{ major: {}, minor1: {}, minor2: {}, flags: {} }},\n"
                 "    creature_version: FNISVersion {{ major: {}, minor1: {}, minor2: {}, flags: {} }},\n",
                 spdlog::level::to_string_view(log_level),
-                crc, crc,
+                crc,
+                crc,
                 mod_count,
                 set_count,
                 version_str,
@@ -91,7 +93,7 @@ namespace fnis_aa::config {
                 creature_version.minor2,
                 creature_version.flags);
 
-            out += "    prefix_list: [\n";
+            out += "    set_list: [\n";
 
             for (size_t i = 0; i < set_list.size(); ++i) {
                 const auto& s = set_list[i];
@@ -101,7 +103,20 @@ namespace fnis_aa::config {
                     s.mod_id,
                     s.group_id,
                     s.base,
-                    (i == set_list.size() - 1 ? "" : ",\n"));
+                    (i + 1 == set_list.size() ? "" : ",\n"));
+            }
+
+            out += "\n    ],\n";
+
+            out += "    prefix_list: [\n";
+
+            for (size_t i = 0; i < prefix_list.size(); ++i) {
+                const auto& prefix = prefix_list[i];
+#ifdef TEST
+                out += std::format("        \"{}\"{}", prefix, (i + 1 == prefix_list.size() ? "" : ",\n"));
+#else
+                out += std::format("        \"{}\"{}", prefix.c_str(), (i + 1 == prefix_list.size() ? "" : ",\n"));
+#endif
             }
 
             out += "\n    ]\n}";
@@ -176,9 +191,6 @@ namespace fnis_aa::config {
         auto result = ParsedConfig::from_json(j);
         g_config = std::move(result.config);
         g_diagnostics = std::move(result.diagnostics);
-
-        spdlog::set_level(g_config.log_level);
-        SPDLOG_INFO("Log level initialized: {}", spdlog::level::to_string_view(g_config.log_level));
     }
 
 #endif
