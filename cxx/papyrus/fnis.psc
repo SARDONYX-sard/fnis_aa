@@ -8,4 +8,5 @@ int function VersionCompare(int iCompMajor, int iCompMinor1, int iCompMinor2, bo
 int function GetMajor(bool abCreature = false) global native
 int function GetMinor1(bool abCreature = false) global native
 int function GetMinor2(bool abCreature = false) global native
+int function GetFlags(bool abCreature = false) global native
 Bool function IsRelease(bool abCreature = false) global native

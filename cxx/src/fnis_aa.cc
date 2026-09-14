@@ -121,7 +121,7 @@ namespace fnis_aa::FNIS_aa {
         /// `int[] FNIS_aa.GetAllGroupBaseValues(int AAmodID, string mod, bool debugOutput)`
         static std::vector<int32_t> GetAllGroupBaseValues(RE::StaticFunctionTag*, int32_t mod_id, RE::BSFixedString mod, bool debugOutput) {
             std::vector<int32_t> result(54, 0);  // == vec![0; 54];
-            SPDLOG_WARN("GetAllGroupBaseValues(mod_id={}, mod=\"{}\", debugOutput={})", mod_id, mod.c_str(), debugOutput);
+            SPDLOG_DEBUG("GetAllGroupBaseValues(mod_id={}, mod=\"{}\", debugOutput={})", mod_id, mod.c_str(), debugOutput);
 
             if (mod_id < 0 || mod_id > 29) {
                 SPDLOG_WARN("Invalid mod_id arg: expected 0 <= value <= 29, but got {}. Return default", mod_id);
