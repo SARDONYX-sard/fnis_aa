@@ -96,10 +96,6 @@ namespace fnis_aa::config {
                 return target_level;
             }
 
-            // For some reason, when I call `set_level` via `g_config` after `from_json`, the level isn't applied, so write it here.
-            spdlog::set_level(target_level);
-            SPDLOG_INFO("Log level initialized: {}", spdlog::level::to_string_view(target_level));
-
             return target_level;
         }
 
