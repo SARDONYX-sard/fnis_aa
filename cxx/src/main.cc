@@ -11,13 +11,6 @@ namespace {
                 fnis_aa::bridge::init();
                 return;
             }
-        case SKSE::MessagingInterface::kNewGame:     // Fired when starting a new game.
-        case SKSE::MessagingInterface::kDataLoaded:  // Fired after all game data has loaded.
-            {
-                fnis_aa::config::NewGlobalConfig();
-                fnis_aa::menu::UpdateSnapshot();
-                return;
-            }
 
         default:
             return;
@@ -40,6 +33,8 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Load(const SKSE::LoadInterface*
     if (msg == nullptr) {
         return false;
     }
+
+    fnis_aa::config::LoadGlobalConfig();
 
     msg->RegisterListener("SKSE", ::SkseListener);
     SKSE::GetPapyrusInterface()->Register(

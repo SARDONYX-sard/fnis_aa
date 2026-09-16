@@ -69,6 +69,25 @@ namespace fnis_aa {
     } };
     static_assert(std::ranges::is_sorted(ALT_GROUP_TABLE, {}, &AAGroupInfo::name), "kAltGroupTable must be sorted by name");
 
+    // NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index)
+    inline constexpr std::array<std::optional<std::string_view>, 54> ALT_GROUP_NAMES_BY_ID = [] {
+        std::array<std::optional<std::string_view>, 54> table{};
+        for (const auto& group : ALT_GROUP_TABLE) {
+            // Safety: check range at compile time.
+            table[group.id] = group.name;
+        }
+        return table;
+    }();
+
+    [[nodiscard]] constexpr std::optional<std::string_view> group_name(int32_t group_id) noexcept {
+        if (group_id < 0 || group_id >= static_cast<int32_t>(ALT_GROUP_NAMES_BY_ID.size())) {
+            return std::nullopt;
+        }
+        // Safety: check range above.
+        return ALT_GROUP_NAMES_BY_ID[static_cast<std::size_t>(group_id)];
+    }
+    // NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index)
+
     // Binary search for the first element whose projected key is not less than `name`.
     // Requires `ALT_GROUP_TABLE` to be sorted by `AAGroupInfo::name`.
     // Complexity: O(log N) comparisons.

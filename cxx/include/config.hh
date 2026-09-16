@@ -161,7 +161,7 @@ namespace fnis_aa::config {
     // NOLINTEND(cert-err58-cpp)
 
     /// Loads `Data/SKSE/Plugins/fnis_aa/config.json`.
-    inline void NewGlobalConfig() {
+    inline void LoadGlobalConfig() {
         constexpr const char* CONFIG_PATH = "Data/SKSE/Plugins/fnis_aa/config.json";
 
         std::ifstream f{ CONFIG_PATH };
@@ -189,6 +189,9 @@ namespace fnis_aa::config {
         }
 
         auto result = ParsedConfig::from_json(j);
+        spdlog::set_level(result.config.log_level);
+        SPDLOG_INFO("Log level initialized: {}", spdlog::level::to_string_view(result.config.log_level));
+
         g_config = std::move(result.config);
         g_diagnostics = std::move(result.diagnostics);
     }
