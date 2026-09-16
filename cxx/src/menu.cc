@@ -6,6 +6,7 @@
 namespace fnis_aa::menu {
 
     namespace {
+        constexpr const char* SECTION_NAME = "Dyn FNIS AA Functions";
 
         namespace color {
             constexpr ImGuiMCP::ImVec4 rgba(std::uint32_t color) noexcept {
@@ -112,19 +113,20 @@ namespace fnis_aa::menu {
         }
 
         void draw_overview(const config::Config& config, const std::vector<config::Diagnostic>& diagnostics) {
-            ImGuiMCP::TextUnformatted("FNIS Alternate Animation");
-
+            static std::string PLUGIN_TITLE = std::format("{} v{}", SECTION_NAME, SKSE::GetPluginVersion().string("."));
+            ImGuiMCP::TextUnformatted(PLUGIN_TITLE.c_str());
             ImGuiMCP::Separator();
+
             const bool has_errors = std::ranges::any_of(diagnostics, [](const config::Diagnostic& diagnostic) {
                 return diagnostic.level == config::DiagnosticLevel::error;
             });
 
-            const std::string configuration = has_errors ? "Errors detected" : "Loaded";
+            const std::string config_status = has_errors ? "Errors detected" : "Loaded";
             const std::string mods = std::to_string(config.mod_count);
             const std::string sets = std::to_string(config.set_count);
             const std::string crc = std::format("{}(0x{:08X})", config.crc, config.crc);
             draw_property_table({
-                { "Configuration", configuration },
+                { "Config", config_status },
                 { "FNIS Version", config.version_str },
                 { "Creature Version", config.creature_version_str },
                 { "Mods", mods },
@@ -978,7 +980,7 @@ namespace fnis_aa::menu {
             return;
         }
 
-        SKSEMenuFramework::SetSection("Dyn FNIS AA Functions");
+        SKSEMenuFramework::SetSection(SECTION_NAME);
         SKSEMenuFramework::AddSectionItem("Status", render);
         SKSEMenuFramework::AddSectionItem("Debug", render_debug_section);
     }
