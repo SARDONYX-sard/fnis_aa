@@ -70,36 +70,46 @@ namespace fnis_aa::menu {
             return "UNKNOWN";
         }
 
-        [[nodiscard]] ImGuiMCP::ImVec4 diagnostic_color(config::DiagnosticLevel level) noexcept {
-            constexpr auto rgba = [](std::uint32_t color) noexcept {
+        namespace color {
+            constexpr ImGuiMCP::ImVec4 rgba(std::uint32_t color) noexcept {
                 return ImGuiMCP::ImVec4{
                     .x = static_cast<float>((color >> 24) & 0xFF) / 255.0f,
                     .y = static_cast<float>((color >> 16) & 0xFF) / 255.0f,
                     .z = static_cast<float>((color >> 8) & 0xFF) / 255.0f,
                     .w = static_cast<float>(color & 0xFF) / 255.0f,
                 };
-            };
-
-            constexpr ImGuiMCP::ImVec4 SUCCESS_COLOR = rgba(0x4DD95AFF);
-            constexpr ImGuiMCP::ImVec4 INFO_COLOR = rgba(0x59A6F2FF);
-            constexpr ImGuiMCP::ImVec4 WARN_COLOR = rgba(0xF2BF33FF);
-            constexpr ImGuiMCP::ImVec4 error_COLOR = rgba(0xF24040FF);
-
-            switch (level) {
-            case config::DiagnosticLevel::success:
-                return SUCCESS_COLOR;
-
-            case config::DiagnosticLevel::info:
-                return INFO_COLOR;
-
-            case config::DiagnosticLevel::warning:
-                return WARN_COLOR;
-
-            case config::DiagnosticLevel::error:
-                return error_COLOR;
             }
 
-            return rgba(0xFFFFFFFF);
+            constexpr ImGuiMCP::ImVec4 WHITE = rgba(0xFFFFFFFF);
+            constexpr ImGuiMCP::ImVec4 BLUE = rgba(0x61B0F0FF);
+            constexpr ImGuiMCP::ImVec4 GREEN = rgba(0x9AB975FF);
+            constexpr ImGuiMCP::ImVec4 ORANGE = rgba(0xD19A66FF);
+            constexpr ImGuiMCP::ImVec4 PURPLE = rgba(0xC778DEFF);
+            constexpr ImGuiMCP::ImVec4 RED = rgba(0xE06B75FF);
+            constexpr ImGuiMCP::ImVec4 YELLOW = rgba(0xE6BF78FF);
+
+            constexpr ImGuiMCP::ImVec4 SUCCESS = rgba(0x4DD95AFF);
+            constexpr ImGuiMCP::ImVec4 INFO = rgba(0x59A6F2FF);
+            constexpr ImGuiMCP::ImVec4 WARN = rgba(0xF2BF33FF);
+            constexpr ImGuiMCP::ImVec4 ERROR_ = rgba(0xF24040FF);
+        }
+
+        [[nodiscard]] ImGuiMCP::ImVec4 diagnostic_color(config::DiagnosticLevel level) noexcept {
+            switch (level) {
+            case config::DiagnosticLevel::success:
+                return color::SUCCESS;
+
+            case config::DiagnosticLevel::info:
+                return color::INFO;
+
+            case config::DiagnosticLevel::warning:
+                return color::WARN;
+
+            case config::DiagnosticLevel::error:
+                return color::ERROR_;
+            }
+
+            return color::WHITE;
         }
 
         inline void draw_status(config::DiagnosticLevel level, const char* label, const char* message) {
@@ -238,7 +248,7 @@ namespace fnis_aa::menu {
 
             const std::string mods = std::to_string(g_snapshot.mod_count);
             const std::string sets = std::to_string(g_snapshot.set_count);
-            const std::string crc = std::format("0x{:08X}", static_cast<uint32_t>(g_snapshot.crc));
+            const std::string crc = std::format("{}(0x{:08X})", static_cast<uint32_t>(g_snapshot.crc), static_cast<uint32_t>(g_snapshot.crc));
 
             draw_property_table({
                 { "Configuration", configuration },
@@ -586,16 +596,6 @@ namespace fnis_aa::menu {
                 callback);
         }
 
-        namespace AtomOneDark {
-            constexpr ImVec4 blue{ .x = 0.38f, .y = 0.69f, .z = 0.94f, .w = 1.0f };
-            // constexpr ImVec4 cyan{ .x = 0.33f, .y = 0.76f, .z = 0.82f, .w = 1.0f };
-            constexpr ImVec4 green{ .x = 0.60f, .y = 0.73f, .z = 0.47f, .w = 1.0f };
-            constexpr ImVec4 orange{ .x = 0.820f, .y = 0.604f, .z = 0.400f, .w = 1.0f };
-            constexpr ImVec4 purple{ .x = 0.78f, .y = 0.47f, .z = 0.87f, .w = 1.0f };
-            constexpr ImVec4 red{ .x = 0.88f, .y = 0.42f, .z = 0.46f, .w = 1.0f };
-            constexpr ImVec4 yellow{ .x = 0.90f, .y = 0.75f, .z = 0.47f, .w = 1.0f };
-        }
-
         inline void color_text(const char* parenthesis, const ImGuiMCP::ImVec4& color) {
             ImGuiMCP::PushStyleColor(ImGuiCol_Text, color);
             ImGuiMCP::TextUnformatted(parenthesis);
@@ -617,7 +617,7 @@ namespace fnis_aa::menu {
 
             ImGuiMCP::TextUnformatted("-> ");
             ImGuiMCP::SameLine();
-            color_text("Return", AtomOneDark::purple);
+            color_text("Return", color::PURPLE);
             ImGuiMCP::SameLine();
             ImGuiMCP::TextUnformatted(":");
             ImGuiMCP::SameLine();
@@ -632,11 +632,11 @@ namespace fnis_aa::menu {
                 break;
 
             case FFITestState::success:
-                color_text(result.result.c_str(), AtomOneDark::green);
+                color_text(result.result.c_str(), color::GREEN);
                 break;
 
             case FFITestState::error:
-                color_text(std::format("<error: {}>", result.error).c_str(), AtomOneDark::red);
+                color_text(std::format("<error: {}>", result.error).c_str(), color::RED);
                 break;
             }
         }
@@ -657,43 +657,215 @@ namespace fnis_aa::menu {
             bool*       value;
         };
 
-        inline void draw_ffi_argument(const FFIIntArgument& arg) {
+        // ---------------------------------------------------------------------
+        // FFI test registration DSL
+        // ---------------------------------------------------------------------
+
+        template <typename T>
+        struct FFIArgumentType;
+
+        template <>
+        struct FFIArgumentType<FFIIntArgument> {
+            static constexpr const char* papyrus_name = "int";
+        };
+
+        template <>
+        struct FFIArgumentType<FFIStringArgument> {
+            static constexpr const char* papyrus_name = "string";
+        };
+
+        template <>
+        struct FFIArgumentType<FFIBoolArgument> {
+            static constexpr const char* papyrus_name = "bool";
+        };
+
+        template <typename T>
+        struct FFIReturnType;
+
+        template <>
+        struct FFIReturnType<int32_t> {
+            static constexpr const char* papyrus_name = "int";
+        };
+
+        template <>
+        struct FFIReturnType<bool> {
+            static constexpr const char* papyrus_name = "bool";
+        };
+
+        template <>
+        struct FFIReturnType<std::string> {
+            static constexpr const char* papyrus_name = "string";
+        };
+
+        template <typename T>
+        struct FFIReturnType<std::vector<T>>;
+
+        template <>
+        struct FFIReturnType<std::vector<int32_t>> {
+            static constexpr const char* papyrus_name = "int[]";
+        };
+
+        template <>
+        struct FFIReturnType<std::vector<std::string>> {
+            static constexpr const char* papyrus_name = "string[]";
+        };
+
+        template <typename T>
+        struct FFIReturn {
+            using type = T;
+        };
+
+        template <typename T>
+        inline constexpr FFIReturn<T> ret{};
+
+        template <typename... Args>
+        struct FFIArgs {
+            std::tuple<Args...> values;
+        };
+
+        template <typename... Args>
+        FFIArgs<Args...> make_ffi_args(Args&&... args) {
+            return {
+                .values = std::tuple{ std::forward<Args>(args)... }
+            };
+        }
+
+        inline FFIIntArgument make_ffi_argument(const char* name, int32_t& value) {
+            return {
+                .label = name,
+                .value = &value,
+            };
+        }
+
+        template <std::size_t N>
+        inline FFIStringArgument make_ffi_argument(const char* name, std::array<char, N>& value) {
+            return {
+                .label = name,
+                .value = value.data(),
+                .size = value.size(),
+            };
+        }
+
+        inline FFIBoolArgument make_ffi_argument(const char* name, bool& value) {
+            return {
+                .label = name,
+                .value = &value,
+            };
+        }
+
+#define FNIS_FFI_MAKE_ARGUMENT(value) make_ffi_argument(#value, value)
+
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+#define FNIS_FFI_ARGS_1(a) make_ffi_args(FNIS_FFI_MAKE_ARGUMENT(a))
+
+#define FNIS_FFI_ARGS_2(a, b)      \
+    make_ffi_args(                 \
+        FNIS_FFI_MAKE_ARGUMENT(a), \
+        FNIS_FFI_MAKE_ARGUMENT(b))
+
+#define FNIS_FFI_ARGS_3(a, b, c)   \
+    make_ffi_args(                 \
+        FNIS_FFI_MAKE_ARGUMENT(a), \
+        FNIS_FFI_MAKE_ARGUMENT(b), \
+        FNIS_FFI_MAKE_ARGUMENT(c))
+
+#define FNIS_FFI_ARGS_4(a, b, c, d) \
+    make_ffi_args(                  \
+        FNIS_FFI_MAKE_ARGUMENT(a),  \
+        FNIS_FFI_MAKE_ARGUMENT(b),  \
+        FNIS_FFI_MAKE_ARGUMENT(c),  \
+        FNIS_FFI_MAKE_ARGUMENT(d))
+
+#define FNIS_FFI_GET_ARGS_MACRO(_1, _2, _3, _4, NAME, ...) NAME
+
+#define args(...)            \
+    FNIS_FFI_GET_ARGS_MACRO( \
+        __VA_ARGS__,         \
+        FNIS_FFI_ARGS_4,     \
+        FNIS_FFI_ARGS_3,     \
+        FNIS_FFI_ARGS_2,     \
+        FNIS_FFI_ARGS_1)(__VA_ARGS__)
+        // NOLINTEND(cppcoreguidelines-macro-usage)
+
+        inline auto args0() { return make_ffi_args(); }
+
+        template <class Arg>
+        void draw_ffi_signature_separator(bool& first, const Arg& arg) {
+            if (!first) {
+                ImGuiMCP::SameLine();
+                ImGuiMCP::TextUnformatted(", ");
+            }
+            first = false;
+
+            using Argument = std::remove_cvref_t<Arg>;
+            ImGuiMCP::SameLine();
+            color_text(FFIArgumentType<Argument>::papyrus_name, color::YELLOW);
+            ImGuiMCP::SameLine();
+            ImGuiMCP::TextUnformatted(arg.label);
+        }
+
+        template <class... Args>
+        void draw_ffi_signature_arguments(const Args&... args) {
+            bool first = true;
+            (draw_ffi_signature_separator(first, args), ...);
+        }
+
+        template <typename Ret, class... Args>
+        void draw_ffi_signature(const char* script_name, const char* function_name, const FFIArgs<Args...>& arguments, FFIReturn<Ret>) {
+            // return type
+            color_text(FFIReturnType<Ret>::papyrus_name, color::YELLOW);
+
+            ImGuiMCP::SameLine();
+            ImGuiMCP::TextUnformatted(script_name);
+            ImGuiMCP::SameLine(0.0f);
+            ImGuiMCP::TextUnformatted(".");
+            ImGuiMCP::SameLine(0.0f);
+            color_text(function_name, color::BLUE);
+            ImGuiMCP::SameLine(0.0f);
+            color_text("(", color::BLUE);
+
+            std::apply([&](const auto&... args) { draw_ffi_signature_arguments(args...); }, arguments.values);
+
+            ImGuiMCP::SameLine(0.0f);
+            color_text(")", color::BLUE);
+        }
+
+        inline void draw_ffi_argument(std::size_t test_id, const FFIIntArgument& arg) {
             ImGuiMCP::SetNextItemWidth(80.0f);
-            ImGuiMCP::PushStyleColor(ImGuiCol_Text, AtomOneDark::orange);
-            ImGuiMCP::InputInt(std::format("##{}", arg.label).c_str(), reinterpret_cast<int*>(arg.value), 0, 0);
+            ImGuiMCP::PushStyleColor(ImGuiCol_Text, color::ORANGE);
+            ImGuiMCP::InputInt(std::format("##FNIS_FFI_TEST_{}_{}", test_id, arg.label).c_str(), reinterpret_cast<int*>(arg.value), 0, 0);
             ImGuiMCP::PopStyleColor();
         }
 
-        inline void draw_ffi_argument(const FFIStringArgument& arg) {
+        inline void draw_ffi_argument(std::size_t test_id, const FFIStringArgument& arg) {
             ImGuiMCP::SetNextItemWidth(160.0f);
-            ImGuiMCP::PushStyleColor(ImGuiCol_Text, AtomOneDark::green);
-
-            ImGuiMCP::InputText(std::format("##{}", arg.label).c_str(), arg.value, arg.size);
+            ImGuiMCP::PushStyleColor(ImGuiCol_Text, color::GREEN);
+            ImGuiMCP::InputText(std::format("##FNIS_FFI_TEST_{}_{}", test_id, arg.label).c_str(), arg.value, arg.size);
             ImGuiMCP::PopStyleColor();
         }
 
-        inline void draw_ffi_argument(const FFIBoolArgument& arg) {
-            ImGuiMCP::PushStyleColor(ImGuiCol_Text, AtomOneDark::orange);
-            ImGuiMCP::Checkbox(std::format("##{}", arg.label).c_str(), arg.value);
+        inline void draw_ffi_argument(std::size_t test_id, const FFIBoolArgument& arg) {
+            ImGuiMCP::PushStyleColor(ImGuiCol_Text, color::ORANGE);
+            ImGuiMCP::Checkbox(std::format("##FNIS_FFI_TEST_{}_{}", test_id, arg.label).c_str(), arg.value);
             ImGuiMCP::PopStyleColor();
         }
 
         template <class Arg>
-        void draw_ffi_argument_separator(bool& first, const Arg& arg) {
+        void draw_ffi_argument_separator(std::size_t test_id, bool& first, const Arg& arg) {
             if (!first) {
                 ImGuiMCP::SameLine();
                 ImGuiMCP::TextUnformatted(", ");
-                ImGuiMCP::SameLine();
             }
-
             first = false;
-            draw_ffi_argument(arg);
+
+            ImGuiMCP::SameLine();
+            draw_ffi_argument(test_id, arg);
         }
 
         template <class... Args>
-        void draw_ffi_arguments(const Args&... args) {
+        void draw_ffi_arguments(std::size_t test_id, const Args&... args) {
             bool first = true;
-            (draw_ffi_argument_separator(first, args), ...);
+            (draw_ffi_argument_separator(test_id, first, args), ...);
         }
 
         /// For int32_t, bool
@@ -707,263 +879,167 @@ namespace fnis_aa::menu {
         }
 
         template <class... Args>
-        void draw_ffi_call(std::size_t test_id, const char* signature, const char* function_name, const char* script_name, const Args&... args) {
-            ImGuiMCP::TextUnformatted(signature);
-
-            // format: fn()
-            color_text(function_name, AtomOneDark::blue);
-            ImGuiMCP::SameLine();
-            color_text("(", AtomOneDark::yellow);
-            ImGuiMCP::SameLine();
-
-            draw_ffi_arguments(args...);
+        void draw_ffi_call_line(std::size_t test_id, const char* function_name, const char* script_name, const FFIArgs<Args...>& arguments) {
+            color_text(function_name, color::BLUE);
 
             ImGuiMCP::SameLine();
-            color_text(")", AtomOneDark::yellow);
+            color_text("(", color::YELLOW);
+
+            std::apply([&](const auto&... args) { draw_ffi_arguments(test_id, args...); }, arguments.values);
+
+            ImGuiMCP::SameLine();
+            color_text(")", color::YELLOW);
             ImGuiMCP::SameLine();
 
             if (ImGuiMCP::Button(std::format("Call##{}", test_id).c_str())) {
-                call_ffi_function(test_id, script_name, function_name, get_ffi_argument_value(args)...);
+                std::apply(
+                    [&](const auto&... args) {
+                        call_ffi_function(test_id, script_name, function_name, get_ffi_argument_value(args)...);
+                    },
+                    arguments.values);
             }
+        }
 
+        template <class Ret, class... Args>
+        void register_ffi_test_impl(std::size_t test_id, const char* function_name, const char* script_name, const FFIArgs<Args...>& arguments, FFIReturn<Ret>) {
+            draw_ffi_signature(script_name, function_name, arguments, ret<Ret>);
+            draw_ffi_call_line(test_id, function_name, script_name, arguments);
             draw_ffi_result(test_id);
             ImGuiMCP::NewLine();
         }
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+#define REGISTER_TEST_FN(function_name, script_name, arguments, return_type)            \
+    {                                                                                   \
+        static const auto id = register_ffi_test();                                     \
+        register_ffi_test_impl(id, function_name, script_name, arguments, return_type); \
+    }
+        // NOLINTEND(cppcoreguidelines-macro-usage)
+
         void draw_ffi_call_tests() {
-            // Skip functions(need Actor, Return void)
-            //
+            // -----------------------------------------------------------------
+            // FNIS_aa2.pex
+            // -----------------------------------------------------------------
+
+            {
+                static int32_t aaNumber = 0;
+
+                REGISTER_TEST_FN("GetAAnumber", "FNIS_aa2", args(aaNumber), ret<int32_t>);
+            }
+
+            {
+                static int32_t               nMods = 0;
+                static std::array<char, 256> mod{};
+                static bool                  debugOutput = false;
+
+                REGISTER_TEST_FN("GetAAprefixList", "FNIS_aa2", args(nMods, mod, debugOutput), ret<std::vector<std::string>>);
+            }
+
+            {
+                static int32_t               nSets = 0;
+                static std::array<char, 256> mod{};
+                static bool                  debugOutput = false;
+
+                REGISTER_TEST_FN("GetAAsetList", "FNIS_aa2", args(nSets, mod, debugOutput), ret<std::vector<std::string>>);
+            }
+
+            // -----------------------------------------------------------------
+            // FNIS_aa.pex
+            // -----------------------------------------------------------------
+
+            // Skip reason: Need Actor
             // - FNIS_aa.SetAnimGroup(Actor ac, string animGroup, int base, int number, string mod, bool debugOutput) -> bool
             // - FNIS_aa.SetAnimGroupEX(Actor ac, string animGroup, int base, int number, string mod, bool debugOutput, bool skipForce3D) -> bool
+
+            {
+                static std::array<char, 256> myAAprefix{};
+                static std::array<char, 256> mod{};
+                static bool                  debugOutput = false;
+
+                REGISTER_TEST_FN("GetAAmodID", "FNIS_aa", args(myAAprefix, mod, debugOutput), ret<int32_t>);
+            }
+
+            {
+                static int32_t               AAmodID = 0;
+                static int32_t               AAgroupID = 0;
+                static std::array<char, 256> mod{};
+                static bool                  debugOutput = false;
+
+                REGISTER_TEST_FN("GetGroupBaseValue", "FNIS_aa", args(AAmodID, AAgroupID, mod, debugOutput), ret<int32_t>);
+            }
+
+            {
+                static int32_t               AAmodID = 0;
+                static std::array<char, 256> mod{};
+                static bool                  debugOutput = false;
+
+                REGISTER_TEST_FN("GetAllGroupBaseValues", "FNIS_aa", args(AAmodID, mod, debugOutput), ret<std::vector<int32_t>>);
+            }
+
+            {
+                REGISTER_TEST_FN("GetInstallationCRC", "FNIS_aa", args0(), ret<int32_t>);
+            }
+
+            // Skip Reason: output args `GroupId, ModId, Base`
             // - FNIS_aa.GetAAsets(int nSets, int[] GroupId, int[] ModId, int[] Base, int[] Index, string mod, bool debugOutput) -> void
 
+            // -----------------------------------------------------------------
+            // FNIS.pex
+            // -----------------------------------------------------------------
+
+            // Skip reason: Need Actor
             // - FNIS.set_AACondition(Actor ac, string aaType, string mod, int aaCond, int aaDebug) -> int
+
+            // Skip reason: void
             // - FNIS.AAReport(string longReport, string shortReport, int AAdebug, bool isError) -> void
 
-            // ---------------------------------------------------------------------------------------------------------
-            // FNIS_aa2.pex
-
             {
-                static const auto id = register_ffi_test();
-                static int32_t    list_type = 0;
-
-                draw_ffi_call(id, "int FNIS_aa2.GetAAnumber(int aaNumber)", "GetAAnumber", "FNIS_aa2",
-                    FFIIntArgument{
-                        .label = "##FNIS_aa2_GetAAnumber_listType",
-                        .value = &list_type,
-                    });
+                REGISTER_TEST_FN("IsGenerated", "FNIS", args0(), ret<bool>);
             }
 
             {
-                static const auto            id = register_ffi_test();
-                static int32_t               n_mods = 0;
-                static std::array<char, 256> mod{};
-                static bool                  debug_output = false;
+                static bool abCreature = false;
 
-                draw_ffi_call(
-                    id,
-                    "string[] FNIS_aa2.GetAAprefixList(int nMods, string mod, bool debugOutput)",
-                    "GetAAprefixList",
-                    "FNIS_aa2",
-                    FFIIntArgument{
-                        .label = "##FNIS_aa2_GetAAprefixList_nMods",
-                        .value = &n_mods,
-                    },
-                    FFIStringArgument{
-                        .label = "##FNIS_aa2_GetAAprefixList_mod",
-                        .value = mod.data(),
-                        .size = mod.size(),
-                    },
-                    FFIBoolArgument{
-                        .label = "##FNIS_aa2_GetAAprefixList_debugOutput",
-                        .value = &debug_output,
-                    });
-            }
-
-            // ---------------------------------------------------------------------------------------------------------
-            // FNIS_aa.pex
-
-            {
-                static const auto            id = register_ffi_test();
-                static std::array<char, 256> aa_prefix{};
-                static std::array<char, 256> mod{};
-                static bool                  debug_output = false;
-
-                draw_ffi_call(id,
-                    "int FNIS_aa.GetAAmodID(string myAAprefix, string mod, bool debugOutput)",
-                    "GetAAmodID",
-                    "FNIS_aa",
-                    FFIStringArgument{
-                        .label = "##FNIS_aa_GetAAmodID_aaPrefix",
-                        .value = aa_prefix.data(),
-                        .size = aa_prefix.size(),
-                    },
-                    FFIStringArgument{
-                        .label = "##FNIS_aa_GetAAmodID_mod",
-                        .value = mod.data(),
-                        .size = mod.size(),
-                    },
-                    FFIBoolArgument{
-                        .label = "##FNIS_aa_GetAAmodID_debugOutput",
-                        .value = &debug_output,
-                    });
+                REGISTER_TEST_FN("VersionToString", "FNIS", args(abCreature), ret<std::string>);
             }
 
             {
-                static const auto            id = register_ffi_test();
-                static int32_t               aa_mod_id = 0;
-                static int32_t               aa_group_id = 0;
-                static std::array<char, 256> mod{};
-                static bool                  debug_output = false;
+                static int32_t iCompMajor = 0;
+                static int32_t iCompMinor1 = 0;
+                static int32_t iCompMinor2 = 0;
+                static bool    abCreature = false;
 
-                draw_ffi_call(id,
-                    "int FNIS_aa.GetGroupBaseValue(int AAmodID, int AAgroupID, string mod, bool debugOutput)",
-                    "GetGroupBaseValue",
-                    "FNIS_aa",
-                    FFIIntArgument{
-                        .label = "##FNIS_aa_GetGroupBaseValue_modId",
-                        .value = &aa_mod_id,
-                    },
-                    FFIIntArgument{
-                        .label = "##FNIS_aa_GetGroupBaseValue_groupId",
-                        .value = &aa_group_id,
-                    },
-                    FFIStringArgument{
-                        .label = "##FNIS_aa_GetGroupBaseValue_mod",
-                        .value = mod.data(),
-                        .size = mod.size(),
-                    },
-                    FFIBoolArgument{
-                        .label = "##FNIS_aa_GetGroupBaseValue_debugOutput",
-                        .value = &debug_output,
-                    });
+                REGISTER_TEST_FN("VersionCompare", "FNIS", args(iCompMajor, iCompMinor1, iCompMinor2, abCreature), ret<int32_t>);
             }
 
             {
-                static const auto            id = register_ffi_test();
-                static int32_t               aa_mod_id = 0;
-                static std::array<char, 256> mod{};
-                static bool                  debug_output = false;
+                static bool abCreature = false;
 
-                draw_ffi_call(id,
-                    "int[] FNIS_aa.GetAllGroupBaseValues(int AAmodID, string mod, bool debugOutput)",
-                    "GetAllGroupBaseValues",
-                    "FNIS_aa",
-                    FFIIntArgument{
-                        .label = "##FNIS_aa_GetAllGroupBaseValues_modId",
-                        .value = &aa_mod_id,
-                    },
-                    FFIStringArgument{
-                        .label = "##FNIS_aa_GetAllGroupBaseValues_mod",
-                        .value = mod.data(),
-                        .size = mod.size(),
-                    },
-                    FFIBoolArgument{
-                        .label = "##FNIS_aa_GetAllGroupBaseValues_debugOutput",
-                        .value = &debug_output,
-                    });
+                REGISTER_TEST_FN("GetMajor", "FNIS", args(abCreature), ret<int32_t>);
             }
 
             {
-                static const auto id = register_ffi_test();
-                draw_ffi_call(id, "int FNIS_aa.GetInstallationCRC()", "GetInstallationCRC", "FNIS_aa");
+                static bool abCreature = false;
+
+                REGISTER_TEST_FN("GetMinor1", "FNIS", args(abCreature), ret<int32_t>);
             }
 
             {
-                static const auto id = register_ffi_test();
-                draw_ffi_call(id, "bool FNIS.IsGenerated()", "IsGenerated", "FNIS");
+                static bool abCreature = false;
+
+                REGISTER_TEST_FN("GetMinor2", "FNIS", args(abCreature), ret<int32_t>);
             }
 
             {
-                static const auto id = register_ffi_test();
-                static bool       creature = false;
+                static bool abCreature = false;
 
-                draw_ffi_call(id, "string FNIS.VersionToString(bool abCreature)", "VersionToString", "FNIS",
-                    FFIBoolArgument{
-                        .label = "##FNIS_VersionToString_creature",
-                        .value = &creature,
-                    });
+                REGISTER_TEST_FN("GetFlags", "FNIS", args(abCreature), ret<int32_t>);
             }
 
             {
-                static const auto id = register_ffi_test();
-                static int32_t    major = 0;
-                static int32_t    minor1 = 0;
-                static int32_t    minor2 = 0;
-                static bool       creature = false;
+                static bool abCreature = false;
 
-                draw_ffi_call(id, "int FNIS.VersionCompare(int iCompMajor, int iCompMinor1, int iCompMinor2, bool abCreature)", "VersionCompare", "FNIS",
-                    FFIIntArgument{
-                        .label = "##FNIS_VersionCompare_major",
-                        .value = &major,
-                    },
-                    FFIIntArgument{
-                        .label = "##FNIS_VersionCompare_minor1",
-                        .value = &minor1,
-                    },
-                    FFIIntArgument{
-                        .label = "##FNIS_VersionCompare_minor2",
-                        .value = &minor2,
-                    },
-                    FFIBoolArgument{
-                        .label = "##FNIS_VersionCompare_creature",
-                        .value = &creature,
-                    });
-            }
-
-            {
-                static const auto id = register_ffi_test();
-                static bool       creature = false;
-
-                draw_ffi_call(id, "int FNIS.GetMajor(bool abCreature)", "GetMajor", "FNIS",
-                    FFIBoolArgument{
-                        .label = "##FNIS_GetMajor_creature",
-                        .value = &creature,
-                    });
-            }
-
-            {
-                static const auto id = register_ffi_test();
-                static bool       creature = false;
-
-                draw_ffi_call(id, "int FNIS.GetMinor1(bool abCreature)", "GetMinor1", "FNIS",
-                    FFIBoolArgument{
-                        .label = "##FNIS_GetMinor1_creature",
-                        .value = &creature,
-                    });
-            }
-
-            {
-                static const auto id = register_ffi_test();
-                static bool       creature = false;
-
-                draw_ffi_call(id, "int FNIS.GetMinor2(bool abCreature)", "GetMinor2", "FNIS",
-                    FFIBoolArgument{
-                        .label = "##FNIS_GetMinor2_creature",
-                        .value = &creature,
-                    });
-            }
-
-            {
-                static const auto id = register_ffi_test();
-                static bool       creature = false;
-
-                draw_ffi_call(id, "int FNIS.GetFlags(bool abCreature)", "GetFlags", "FNIS",
-                    FFIBoolArgument{
-                        .label = "##FNIS_GetFlags_creature",
-                        .value = &creature,
-                    });
-            }
-
-            {
-                static const auto id = register_ffi_test();
-                static bool       creature = false;
-
-                draw_ffi_call(id, "int FNIS.IsRelease(bool abCreature)", "IsRelease", "FNIS",
-                    FFIBoolArgument{
-                        .label = "##FNIS_IsRelease_creature",
-                        .value = &creature,
-                    });
+                REGISTER_TEST_FN("IsRelease", "FNIS", args(abCreature), ret<int32_t>);
             }
         }
 
