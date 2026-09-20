@@ -9,7 +9,7 @@ namespace fnis_aa::menu {
         constexpr const char* SECTION_NAME = "Dyn FNIS AA Functions";
 
         namespace color {
-            constexpr ImGuiMCP::ImVec4 rgba(std::uint32_t color) noexcept {
+            consteval ImGuiMCP::ImVec4 rgba(std::uint32_t color) noexcept {
                 return ImGuiMCP::ImVec4{
                     .x = static_cast<float>((color >> 24) & 0xFF) / 255.0f,
                     .y = static_cast<float>((color >> 16) & 0xFF) / 255.0f,
@@ -426,16 +426,124 @@ namespace fnis_aa::menu {
             }
         }
 
+        // ---------------------------------------------------------------------
+        // FFI test registration DSL
+        // ---------------------------------------------------------------------
+
+        struct FFIIntArgument {
+            const char* label;
+            int32_t*    value;
+        };
+
+        struct FFIStringArgument {
+            const char* label;
+            char*       value;
+            std::size_t size;
+        };
+
+        struct FFIBoolArgument {
+            const char* label;
+            bool*       value;
+        };
+
+        template <typename T>
+        struct FFIArgumentType;
+
+        template <>
+        struct FFIArgumentType<FFIIntArgument> {
+            static constexpr const char* papyrus_name = "int";
+        };
+
+        template <>
+        struct FFIArgumentType<FFIStringArgument> {
+            static constexpr const char* papyrus_name = "string";
+        };
+
+        template <>
+        struct FFIArgumentType<FFIBoolArgument> {
+            static constexpr const char* papyrus_name = "bool";
+        };
+
+        template <typename T>
+        struct FFIReturnType;
+
+        template <>
+        struct FFIReturnType<int32_t> {
+            static constexpr const char* papyrus_name = "int";
+
+            static RE::BSScript::TypeInfo type_info() {
+                return RE::BSScript::TypeInfo(RE::BSScript::TypeInfo::RawType::kInt);
+            }
+        };
+
+        template <>
+        struct FFIReturnType<bool> {
+            static constexpr const char* papyrus_name = "bool";
+
+            static RE::BSScript::TypeInfo type_info() {
+                return RE::BSScript::TypeInfo(RE::BSScript::TypeInfo::RawType::kBool);
+            }
+        };
+
+        template <>
+        struct FFIReturnType<std::string> {
+            static constexpr const char* papyrus_name = "string";
+
+            static RE::BSScript::TypeInfo type_info() {
+                return RE::BSScript::TypeInfo(RE::BSScript::TypeInfo::RawType::kString);
+            }
+        };
+
+        template <>
+        struct FFIReturnType<std::vector<int32_t>> {
+            static constexpr const char* papyrus_name = "int[]";
+
+            static RE::BSScript::TypeInfo type_info() {
+                return RE::BSScript::TypeInfo(RE::BSScript::TypeInfo::RawType::kIntArray);
+            }
+        };
+
+        template <>
+        struct FFIReturnType<std::vector<std::string>> {
+            static constexpr const char* papyrus_name = "string[]";
+
+            static RE::BSScript::TypeInfo type_info() {
+                return RE::BSScript::TypeInfo(RE::BSScript::TypeInfo::RawType::kStringArray);
+            }
+        };
+
+        template <typename T>
+        struct FFIReturn {
+            using type = T;
+        };
+
+        template <typename T>
+        inline constexpr FFIReturn<T> ret{};
+
+        template <typename... Args>
+        struct FFIArgs {
+            std::tuple<Args...> values;
+        };
+
+        template <typename Ret>
         class FFITestCallback final : public RE::BSScript::IStackCallbackFunctor {
         public:
             explicit FFITestCallback(std::size_t result_index) : _result_index(result_index) {}
 
             void operator()(RE::BSScript::Variable a_result) override {
-                try {
-                    set_ffi_success(_result_index, format_ffi_variable(a_result));
-                } catch (...) {
-                    set_ffi_error(_result_index, "Failed to format Papyrus return value");
+                const auto actual_type = a_result.GetType();
+                const auto expected_type = FFIReturnType<Ret>::type_info();
+
+                if (actual_type != expected_type) {
+                    set_ffi_error(_result_index,
+                        std::format(
+                            "Papyrus return type mismatch: expected {}, got {}",
+                            FFIReturnType<Ret>::papyrus_name,
+                            actual_type.TypeAsString()));
+                    return;
                 }
+
+                set_ffi_success(_result_index, format_ffi_variable(a_result));
             }
 
             bool CanSave() const override { return false; }
@@ -445,8 +553,8 @@ namespace fnis_aa::menu {
             std::size_t _result_index;
         };
 
-        template <class... Args>
-        void call_ffi_function(std::size_t result_index, std::string_view script_name, std::string_view function_name, Args&&... args) {
+        template <typename Ret, class... Args>
+        void call_ffi_function(std::size_t result_index, std::string_view script_name, std::string_view fn_name, Args&&... args) {
             set_ffi_pending(result_index);
 
             const auto skyrim_vm = RE::SkyrimVM::GetSingleton();
@@ -455,15 +563,10 @@ namespace fnis_aa::menu {
                 return;
             }
 
-            auto callback = RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor>(new FFITestCallback(result_index));
-
             auto fn_args = RE::MakeFunctionArguments(std::forward<Args>(args)...);
-
-            skyrim_vm->GetVMRuntimeData().impl->DispatchStaticCall(
-                RE::BSFixedString(script_name),
-                RE::BSFixedString(function_name),
-                fn_args,
-                callback);
+            // NOTE: Need up cast to compile err.
+            auto callback = RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor>(new FFITestCallback<Ret>(result_index));
+            skyrim_vm->GetVMRuntimeData().impl->DispatchStaticCall(script_name, fn_name, fn_args, callback);
         }
 
         inline void color_text(const char* parenthesis, const ImGuiMCP::ImVec4& color) {
@@ -510,88 +613,6 @@ namespace fnis_aa::menu {
                 break;
             }
         }
-
-        struct FFIIntArgument {
-            const char* label;
-            int32_t*    value;
-        };
-
-        struct FFIStringArgument {
-            const char* label;
-            char*       value;
-            std::size_t size;
-        };
-
-        struct FFIBoolArgument {
-            const char* label;
-            bool*       value;
-        };
-
-        // ---------------------------------------------------------------------
-        // FFI test registration DSL
-        // ---------------------------------------------------------------------
-
-        template <typename T>
-        struct FFIArgumentType;
-
-        template <>
-        struct FFIArgumentType<FFIIntArgument> {
-            static constexpr const char* papyrus_name = "int";
-        };
-
-        template <>
-        struct FFIArgumentType<FFIStringArgument> {
-            static constexpr const char* papyrus_name = "string";
-        };
-
-        template <>
-        struct FFIArgumentType<FFIBoolArgument> {
-            static constexpr const char* papyrus_name = "bool";
-        };
-
-        template <typename T>
-        struct FFIReturnType;
-
-        template <>
-        struct FFIReturnType<int32_t> {
-            static constexpr const char* papyrus_name = "int";
-        };
-
-        template <>
-        struct FFIReturnType<bool> {
-            static constexpr const char* papyrus_name = "bool";
-        };
-
-        template <>
-        struct FFIReturnType<std::string> {
-            static constexpr const char* papyrus_name = "string";
-        };
-
-        template <typename T>
-        struct FFIReturnType<std::vector<T>>;
-
-        template <>
-        struct FFIReturnType<std::vector<int32_t>> {
-            static constexpr const char* papyrus_name = "int[]";
-        };
-
-        template <>
-        struct FFIReturnType<std::vector<std::string>> {
-            static constexpr const char* papyrus_name = "string[]";
-        };
-
-        template <typename T>
-        struct FFIReturn {
-            using type = T;
-        };
-
-        template <typename T>
-        inline constexpr FFIReturn<T> ret{};
-
-        template <typename... Args>
-        struct FFIArgs {
-            std::tuple<Args...> values;
-        };
 
         template <typename... Args>
         FFIArgs<Args...> make_ffi_args(Args&&... args) {
@@ -680,8 +701,8 @@ namespace fnis_aa::menu {
             (draw_ffi_signature_separator(first, args), ...);
         }
 
-        void draw_ffi_function_doc(const char* function_name) {
-            const std::string_view name{ function_name };
+        void draw_ffi_function_doc(const char* fn_name) {
+            const std::string_view name{ fn_name };
 
             if (name == "GetAAnumber") {
                 ImGuiMCP::SetTooltip(
@@ -829,8 +850,7 @@ namespace fnis_aa::menu {
         }
 
         template <typename Ret, class... Args>
-        void draw_ffi_signature(const char* script_name, const char* function_name, const FFIArgs<Args...>& arguments, FFIReturn<Ret>) {
-            // return type
+        void draw_ffi_signature(const char* script_name, const char* fn_name, const FFIArgs<Args...>& arguments, FFIReturn<Ret>) {
             color_text(FFIReturnType<Ret>::papyrus_name, color::YELLOW);
 
             ImGuiMCP::SameLine();
@@ -838,9 +858,9 @@ namespace fnis_aa::menu {
             ImGuiMCP::SameLine(0.0f);
             ImGuiMCP::TextUnformatted(".");
             ImGuiMCP::SameLine(0.0f);
-            color_text(function_name, color::BLUE);
+            color_text(fn_name, color::BLUE);
             if (ImGuiMCP::IsItemHovered()) {
-                draw_ffi_function_doc(function_name);
+                draw_ffi_function_doc(fn_name);
             }
             ImGuiMCP::SameLine(0.0f);
             color_text("(", color::BLUE);
@@ -899,9 +919,9 @@ namespace fnis_aa::menu {
             return { arg.value };
         }
 
-        template <class... Args>
-        void draw_ffi_call_line(std::size_t test_id, const char* function_name, const char* script_name, const FFIArgs<Args...>& arguments) {
-            color_text(function_name, color::BLUE);
+        template <typename Ret, class... Args>
+        void draw_ffi_call_line(std::size_t test_id, const char* fn_name, const char* script_name, const FFIArgs<Args...>& arguments) {
+            color_text(fn_name, color::BLUE);
 
             ImGuiMCP::SameLine();
             color_text("(", color::YELLOW);
@@ -915,25 +935,25 @@ namespace fnis_aa::menu {
             if (ImGuiMCP::Button(std::format("Call##{}", test_id).c_str())) {
                 std::apply(
                     [&](const auto&... args) {
-                        call_ffi_function(test_id, script_name, function_name, get_ffi_argument_value(args)...);
+                        call_ffi_function<Ret>(test_id, script_name, fn_name, get_ffi_argument_value(args)...);
                     },
                     arguments.values);
             }
         }
 
         template <class Ret, class... Args>
-        void register_ffi_test_impl(std::size_t test_id, const char* function_name, const char* script_name, const FFIArgs<Args...>& arguments, FFIReturn<Ret>) {
-            draw_ffi_signature(script_name, function_name, arguments, ret<Ret>);
-            draw_ffi_call_line(test_id, function_name, script_name, arguments);
+        void register_ffi_test_impl(std::size_t test_id, const char* fn_name, const char* script_name, const FFIArgs<Args...>& arguments, FFIReturn<Ret>) {
+            draw_ffi_signature(script_name, fn_name, arguments, ret<Ret>);
+            draw_ffi_call_line<Ret>(test_id, fn_name, script_name, arguments);
             draw_ffi_result(test_id);
             ImGuiMCP::NewLine();
         }
 
 // NOLINTBEGIN(cppcoreguidelines-macro-usage)
-#define REGISTER_TEST_FN(function_name, script_name, arguments, return_type)            \
-    {                                                                                   \
-        static const auto id = register_ffi_test();                                     \
-        register_ffi_test_impl(id, function_name, script_name, arguments, return_type); \
+#define REGISTER_TEST_FN(fn_name, script_name, arguments, return_type)            \
+    {                                                                             \
+        static const auto id = register_ffi_test();                               \
+        register_ffi_test_impl(id, fn_name, script_name, arguments, return_type); \
     }
         // NOLINTEND(cppcoreguidelines-macro-usage)
 
@@ -1060,7 +1080,7 @@ namespace fnis_aa::menu {
             {
                 static bool abCreature = false;
 
-                REGISTER_TEST_FN("IsRelease", "FNIS", args(abCreature), ret<int32_t>);
+                REGISTER_TEST_FN("IsRelease", "FNIS", args(abCreature), ret<bool>);
             }
         }
 
