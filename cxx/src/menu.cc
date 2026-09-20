@@ -680,6 +680,154 @@ namespace fnis_aa::menu {
             (draw_ffi_signature_separator(first, args), ...);
         }
 
+        void draw_ffi_function_doc(const char* function_name) {
+            const std::string_view name{ function_name };
+
+            if (name == "GetAAnumber") {
+                ImGuiMCP::SetTooltip(
+                    "Returns an FNIS AA count.\n"
+                    "\n"
+                    "Examples:\n"
+                    "  GetAAnumber(0) -> mod count\n"
+                    "  GetAAnumber(1) -> set count\n"
+                    "  GetAAnumber(2) -> CRC");
+            } else if (name == "GetAAprefixList") {
+                ImGuiMCP::SetTooltip(
+                    "Returns the configured FNIS AA mod prefix list.\n"
+                    "\n"
+                    "nMods is kept for Papyrus compatibility and does not "
+                    "limit the returned list in this implementation.\n"
+                    "mod and debugOutput are also compatibility parameters.");
+            } else if (name == "GetAAsetList") {
+                ImGuiMCP::SetTooltip(
+                    "Returns FNIS AA set entries encoded as 6-digit decimal strings.\n"
+                    "\n"
+                    "Encoding: PPGGBB\n"
+                    "  PP = mod_id (2 digits)\n"
+                    "  GG = group_id (2 digits)\n"
+                    "  BB = base slot (2 digits)\n"
+                    "\n"
+                    "Example:\n"
+                    "  mod_id=1, group_id=2, base=3 -> \"010203\"\n"
+                    "\n"
+                    "The entries must remain sorted by group_id because GetGroupBaseValue() relies on that ordering.");
+            } else if (name == "GetAAmodID") {
+                ImGuiMCP::SetTooltip(
+                    "Returns the zero-based FNIS AA mod ID for a prefix.\n"
+                    "\n"
+                    "Returns -1 when the prefix is not registered.\n"
+                    "\n"
+                    "Example:\n"
+                    "  [\"aaa\", \"bbb\", \"abc\"]\n"
+                    "  GetAAmodID(\"abc\") -> 2");
+            } else if (name == "GetGroupBaseValue") {
+                ImGuiMCP::SetTooltip(
+                    "Returns the base slot assigned to an FNIS AA group.\n"
+                    "\n"
+                    "mod_id: 0..29\n"
+                    "group_id: 0..53\n"
+                    "\n"
+                    "Returns 0 when the arguments are out of range or the "
+                    "mod/group pair is not configured.\n"
+                    "\n"
+                    "The group_id is the FNIS alternate-animation group ID, "
+                    "not the set-list index.");
+            } else if (name == "GetAllGroupBaseValues") {
+                ImGuiMCP::SetTooltip(
+                    "Returns all base slots for one FNIS AA mod.\n"
+                    "\n"
+                    "The returned array always contains 54 elements.\n"
+                    "Index = group_id.\n"
+                    "Value = base slot.\n"
+                    "Unconfigured groups contain 0.\n"
+                    "\n"
+                    "mod_id must be in the range 0..29.");
+            } else if (name == "GetInstallationCRC") {
+                ImGuiMCP::SetTooltip(
+                    "Returns the FNIS AA installation/layout CRC.\n"
+                    "\n"
+                    "This is the CRC stored in g_config and is also written "
+                    "to the actor graph variables by SetAnimGroup().");
+            } else if (name == "IsGenerated") {
+                ImGuiMCP::SetTooltip(
+                    "Reports whether FNIS behavior generation is available.\n"
+                    "\n"
+                    "This implementation always returns true because the "
+                    "required FNIS data is provided by the generated JSON.");
+            } else if (name == "VersionToString") {
+                ImGuiMCP::SetTooltip(
+                    "Returns the configured FNIS version as a string.\n"
+                    "\n"
+                    "The FNIS version format is V<DD>.<DD>.<DD>.<D>.\n"
+                    "\n"
+                    "The version consists of:\n"
+                    "  major  = major version\n"
+                    "  minor1 = first minor version\n"
+                    "  minor2 = second minor version\n"
+                    "  flags  = release state\n"
+                    "\n"
+                    "Flags:\n"
+                    "  0 = release\n"
+                    "  1 = alpha\n"
+                    "  2 = beta\n"
+                    "  3 = invalid or unavailable version\n"
+                    "\n"
+                    "abCreature selects the normal or creature FNIS version.");
+            } else if (name == "VersionCompare") {
+                ImGuiMCP::SetTooltip(
+                    "Compares the configured FNIS version with the specified version.\n"
+                    "\n"
+                    "Returns:\n"
+                    "   1: Newer than the specified version.\n"
+                    "   0: Match\n"
+                    "  -1: Older than the specified version.");
+            } else if (name == "GetMajor") {
+                ImGuiMCP::SetTooltip(
+                    "Returns the major component of the configured FNIS version.\n"
+                    "\n"
+                    "abCreature selects the normal or creature FNIS version.");
+            } else if (name == "GetMinor1") {
+                ImGuiMCP::SetTooltip(
+                    "Returns the first minor component of the configured FNIS version.\n"
+                    "\n"
+                    "abCreature selects the normal or creature version.");
+            } else if (name == "GetMinor2") {
+                ImGuiMCP::SetTooltip(
+                    "Returns the second minor component of the configured FNIS version.\n"
+                    "\n"
+                    "abCreature selects the normal or creature version.");
+            } else if (name == "GetFlags") {
+                ImGuiMCP::SetTooltip(
+                    "Returns the release-state flags of the configured FNIS version.\n"
+                    "\n"
+                    "  0 = release\n"
+                    "  1 = alpha\n"
+                    "  2 = beta\n"
+                    "  3 = invalid or unavailable version\n"
+                    "\n"
+                    "abCreature selects the normal or creature FNIS version.");
+            } else if (name == "IsRelease") {
+                ImGuiMCP::SetTooltip(
+                    "Returns true when the selected FNIS version has no flags.\n"
+                    "\n"
+                    "Equivalent to:\n"
+                    "  GetFlags(abCreature) == 0");
+            } else if (name == "SetAnimGroup" || name == "SetAnimGroupEX") {
+                ImGuiMCP::SetTooltip(
+                    "Sets the FNIS animation-group graph variable on an actor.\n"
+                    "\n"
+                    "base > 0: value = base + number\n"
+                    "base <= 0: value = base\n"
+                    "\n"
+                    "The value is written to FNISaa<animGroup> and the installation CRC is written to FNISaa_crc and FNISaa<animGroup>_crc.\n"
+                    "\n"
+                    "number must be in the range 0..9.\n"
+                    "\n"
+                    "SetAnimGroupEX additionally accepts skipForce3D. "
+                    "When false, the player is forced into third person.");
+            }
+        }
+
         template <typename Ret, class... Args>
         void draw_ffi_signature(const char* script_name, const char* function_name, const FFIArgs<Args...>& arguments, FFIReturn<Ret>) {
             // return type
@@ -691,6 +839,9 @@ namespace fnis_aa::menu {
             ImGuiMCP::TextUnformatted(".");
             ImGuiMCP::SameLine(0.0f);
             color_text(function_name, color::BLUE);
+            if (ImGuiMCP::IsItemHovered()) {
+                draw_ffi_function_doc(function_name);
+            }
             ImGuiMCP::SameLine(0.0f);
             color_text("(", color::BLUE);
 
