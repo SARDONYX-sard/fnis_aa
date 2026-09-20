@@ -451,17 +451,17 @@ namespace fnis_aa::menu {
 
         template <>
         struct FFIArgumentType<FFIIntArgument> {
-            static constexpr const char* papyrus_name = "int";
+            static constexpr const char* PAPYRUS_NAME = "int";
         };
 
         template <>
         struct FFIArgumentType<FFIStringArgument> {
-            static constexpr const char* papyrus_name = "string";
+            static constexpr const char* PAPYRUS_NAME = "string";
         };
 
         template <>
         struct FFIArgumentType<FFIBoolArgument> {
-            static constexpr const char* papyrus_name = "bool";
+            static constexpr const char* PAPYRUS_NAME = "bool";
         };
 
         template <typename T>
@@ -469,7 +469,8 @@ namespace fnis_aa::menu {
 
         template <>
         struct FFIReturnType<int32_t> {
-            static constexpr const char* papyrus_name = "int";
+            // It is necessary to avoid the unnecessary heap allocation caused by `TypeInfo::TypeAsString()` returning a std::string.
+            static constexpr const char* PAPYRUS_NAME = "int";
 
             static RE::BSScript::TypeInfo type_info() {
                 return RE::BSScript::TypeInfo(RE::BSScript::TypeInfo::RawType::kInt);
@@ -478,7 +479,7 @@ namespace fnis_aa::menu {
 
         template <>
         struct FFIReturnType<bool> {
-            static constexpr const char* papyrus_name = "bool";
+            static constexpr const char* PAPYRUS_NAME = "bool";
 
             static RE::BSScript::TypeInfo type_info() {
                 return RE::BSScript::TypeInfo(RE::BSScript::TypeInfo::RawType::kBool);
@@ -487,7 +488,7 @@ namespace fnis_aa::menu {
 
         template <>
         struct FFIReturnType<std::string> {
-            static constexpr const char* papyrus_name = "string";
+            static constexpr const char* PAPYRUS_NAME = "string";
 
             static RE::BSScript::TypeInfo type_info() {
                 return RE::BSScript::TypeInfo(RE::BSScript::TypeInfo::RawType::kString);
@@ -496,7 +497,7 @@ namespace fnis_aa::menu {
 
         template <>
         struct FFIReturnType<std::vector<int32_t>> {
-            static constexpr const char* papyrus_name = "int[]";
+            static constexpr const char* PAPYRUS_NAME = "int[]";
 
             static RE::BSScript::TypeInfo type_info() {
                 return RE::BSScript::TypeInfo(RE::BSScript::TypeInfo::RawType::kIntArray);
@@ -505,7 +506,7 @@ namespace fnis_aa::menu {
 
         template <>
         struct FFIReturnType<std::vector<std::string>> {
-            static constexpr const char* papyrus_name = "string[]";
+            static constexpr const char* PAPYRUS_NAME = "string[]";
 
             static RE::BSScript::TypeInfo type_info() {
                 return RE::BSScript::TypeInfo(RE::BSScript::TypeInfo::RawType::kStringArray);
@@ -538,7 +539,7 @@ namespace fnis_aa::menu {
                     set_ffi_error(_result_index,
                         std::format(
                             "Papyrus return type mismatch: expected {}, got {}",
-                            FFIReturnType<Ret>::papyrus_name,
+                            FFIReturnType<Ret>::PAPYRUS_NAME,
                             actual_type.TypeAsString()));
                     return;
                 }
@@ -690,7 +691,7 @@ namespace fnis_aa::menu {
 
             using Argument = std::remove_cvref_t<Arg>;
             ImGuiMCP::SameLine();
-            color_text(FFIArgumentType<Argument>::papyrus_name, color::YELLOW);
+            color_text(FFIArgumentType<Argument>::PAPYRUS_NAME, color::YELLOW);
             ImGuiMCP::SameLine();
             ImGuiMCP::TextUnformatted(arg.label);
         }
@@ -850,8 +851,8 @@ namespace fnis_aa::menu {
         }
 
         template <typename Ret, class... Args>
-        void draw_ffi_signature(const char* script_name, const char* fn_name, const FFIArgs<Args...>& arguments, FFIReturn<Ret>) {
-            color_text(FFIReturnType<Ret>::papyrus_name, color::YELLOW);
+        void draw_ffi_signature(const char* script_name, const char* fn_name, const FFIArgs<Args...>& arguments) {
+            color_text(FFIReturnType<Ret>::PAPYRUS_NAME, color::YELLOW);
 
             ImGuiMCP::SameLine();
             ImGuiMCP::TextUnformatted(script_name);
@@ -941,9 +942,10 @@ namespace fnis_aa::menu {
             }
         }
 
+        /// NOTE: `FFIReturn<Ret>` appears to be unused and unnecessary, but it is required to automatically infer `Ret` using generics in the macro.
         template <class Ret, class... Args>
         void register_ffi_test_impl(std::size_t test_id, const char* fn_name, const char* script_name, const FFIArgs<Args...>& arguments, FFIReturn<Ret>) {
-            draw_ffi_signature(script_name, fn_name, arguments, ret<Ret>);
+            draw_ffi_signature<Ret>(script_name, fn_name, arguments);
             draw_ffi_call_line<Ret>(test_id, fn_name, script_name, arguments);
             draw_ffi_result(test_id);
             ImGuiMCP::NewLine();
