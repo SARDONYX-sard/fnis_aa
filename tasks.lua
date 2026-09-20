@@ -25,3 +25,14 @@ task("deploy", function()
         description = "Build and install fnis_aa",
     })
 end)
+
+task("update-submodules", function()
+    on_run(function()
+        os.exec("git submodule update --init --remote")
+    end)
+
+    set_menu({
+        usage = "xmake update-submodules",
+        description = "Update git submodules to their remote revisions",
+    })
+end)
