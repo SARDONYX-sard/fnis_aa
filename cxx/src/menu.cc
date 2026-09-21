@@ -982,7 +982,7 @@ namespace fnis_aa::menu {
             draw_ffi_signature_argument(first);
             (draw_ffi_signature_separator(rest), ...);
         }
-        inline void draw_ffi_signature_arguments() {}  // To void args
+        inline void draw_ffi_signature_arguments() {}  // To support args0
 
         template <typename Ret, auto Fn, class... Args>
             requires FFIFunction<Fn>
@@ -1051,7 +1051,7 @@ namespace fnis_aa::menu {
             draw_ffi_argument(test_id, first);
             (draw_ffi_argument_separator(test_id, rest), ...);
         }
-        inline void draw_ffi_arguments(std::size_t) {}  // To void args
+        inline void draw_ffi_arguments(std::size_t) {}  // To support args0
 
         /// For int32_t, bool
         template <class Arg>
