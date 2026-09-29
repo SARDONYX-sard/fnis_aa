@@ -429,37 +429,25 @@ namespace fnis_aa::menu {
         // ---------------------------------------------------------------------
 
         struct FFIIntArgument {
+            static constexpr const char* PAPYRUS_NAME = "int";
+
             const char* label;
             int32_t*    value;
         };
 
         struct FFIStringArgument {
+            static constexpr const char* PAPYRUS_NAME = "string";
+
             const char* label;
             char*       value;
             std::size_t size;
         };
 
         struct FFIBoolArgument {
+            static constexpr const char* PAPYRUS_NAME = "bool";
+
             const char* label;
             bool*       value;
-        };
-
-        template <typename T>
-        struct FFIArgumentType;
-
-        template <>
-        struct FFIArgumentType<FFIIntArgument> {
-            static constexpr const char* PAPYRUS_NAME = "int";
-        };
-
-        template <>
-        struct FFIArgumentType<FFIStringArgument> {
-            static constexpr const char* PAPYRUS_NAME = "string";
-        };
-
-        template <>
-        struct FFIArgumentType<FFIBoolArgument> {
-            static constexpr const char* PAPYRUS_NAME = "bool";
         };
 
         template <typename T>
@@ -962,10 +950,8 @@ namespace fnis_aa::menu {
 
         template <class Arg>
         void draw_ffi_signature_argument(const Arg& arg) {
-            using Argument = std::remove_cvref_t<Arg>;
-
             ImGuiMCP::SameLine();
-            color_text(FFIArgumentType<Argument>::PAPYRUS_NAME, color::YELLOW);
+            color_text(std::remove_cvref_t<Arg>::PAPYRUS_NAME, color::YELLOW);
             ImGuiMCP::SameLine();
             ImGuiMCP::TextUnformatted(arg.label);
         }
