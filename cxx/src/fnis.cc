@@ -80,6 +80,8 @@ namespace fnis_aa::FNIS {
 
             int32_t i_base = 0;
             ac->GetGraphVariableInt(mod_var, i_base);
+
+            // NOTE: This check follows FNIS specification and should not be based on the bool returned by GetGraphVariableInt().
             if (i_base <= 0) {
                 auto long_report = std::format("FNIS AA ERROR(mod={}): expected AnimVar '{}' > 0 on actor '{}', but got {} ", mod.c_str(), mod_var, actor_name, i_base);
                 AAReport_impl(long_report, "", aa_debug, true);

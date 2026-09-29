@@ -12,7 +12,8 @@ task("build-all", function()
 end)
 
 task("deploy", function()
-    local output_dir = [[D:\GAME\ModOrganizer Skyrim SE\mods\Dyn FNIS AA Functions]]
+    local DEFAULT_OUTPUT_DIR <const> = [[D:\GAME\ModOrganizer Skyrim SE\mods\Dyn FNIS AA Functions]]
+    local output_dir = os.getenv("OUTPUT_DIR") or DEFAULT_OUTPUT_DIR
 
     on_run(function()
         os.exec("cargo build --release")

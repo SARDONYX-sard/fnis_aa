@@ -395,7 +395,7 @@ namespace fnis_aa::menu {
 
                     std::string result = "[";
 
-                    constexpr auto MAX_DISPLAY_COUNT = 10;
+                    constexpr auto MAX_DISPLAY_COUNT = 20;
                     const auto     count = std::min<RE::BSScript::Array::size_type>(array->size(), MAX_DISPLAY_COUNT);
 
                     for (RE::BSScript::Array::size_type i = 0; i < count; ++i) {
@@ -450,8 +450,24 @@ namespace fnis_aa::menu {
             bool*       value;
         };
 
+        struct FFIActorArgument {
+            static constexpr const char* PAPYRUS_NAME = "Actor";
+
+            const char* label;
+            RE::Actor** value;
+        };
+
         template <typename T>
         struct FFIReturnType;
+
+        template <>
+        struct FFIReturnType<void> {
+            static constexpr const char* PAPYRUS_NAME = "";
+
+            static RE::BSScript::TypeInfo type_info() {
+                return RE::BSScript::TypeInfo(RE::BSScript::TypeInfo::RawType::kNone);
+            }
+        };
 
         template <>
         struct FFIReturnType<int32_t> {
@@ -536,28 +552,22 @@ namespace fnis_aa::menu {
             static consteval const char* docs(Fn fn) noexcept {
                 switch (fn) {
                 case Fn::GetAAnumber:
-                    return "Returns an FNIS AA count.\n"
+                    return "Returns an FNIS AA count or CRC.\n"
                            "\n"
-                           "Examples:\n"
-                           "  GetAAnumber(0) -> mod count\n"
-                           "  GetAAnumber(1) -> set count\n"
-                           "  GetAAnumber(2) -> CRC";
+                           "- type: 0 = mod count, 1 = set count, 2 = CRC";
                 case Fn::GetAAprefixList:
                     return "Returns the configured FNIS AA mod prefix list.\n"
                            "\n"
-                           "FNIS reserves prefix slots for AA mods. "
-                           "Unused slots contain an empty string (\"\").\n"
+                           "- nMods: ignored(for FNIS compatibility)\n"
+                           "- debugOutput: ignored(for FNIS compatibility)\n"
                            "\n"
-                           "Empty strings are intentional and are preserved "
-                           "for FNIS compatibility; they do not indicate an error.\n"
-                           "\n"
-                           "nMods is kept for Papyrus compatibility and does not "
-                           "limit the returned list in this implementation.\n"
-                           "mod and debugOutput are also compatibility parameters.";
+                           "Return\n"
+                           "The array always contains 30 elements.";
                 case Fn::GetAAsetList:
                     return "Returns FNIS AA set entries encoded as 6-digit decimal strings.\n"
                            "\n"
-                           "Encoding: PPGGBB\n"
+                           "Return\n"
+                           "Each entry is encoded as PPGGBB:\n"
                            "  PP = mod_id (2 digits)\n"
                            "  GG = group_id (2 digits)\n"
                            "  BB = base slot (2 digits)\n"
@@ -565,7 +575,8 @@ namespace fnis_aa::menu {
                            "Example:\n"
                            "  mod_id=1, group_id=2, base=3 -> \"010203\"\n"
                            "\n"
-                           "The entries must remain sorted by group_id because GetGroupBaseValue() relies on that ordering.";
+                           "Notes\n"
+                           "- Entries are sorted by group_id because GetGroupBaseValue() relies on this ordering.";
                 }
             }
         };
@@ -605,52 +616,50 @@ namespace fnis_aa::menu {
                 case Fn::GetAAmodID:
                     return "Returns the zero-based FNIS AA mod ID for a prefix.\n"
                            "\n"
-                           "Returns -1 when the prefix is not registered.\n"
+                           "- mod: ignored(For FNIS compatibility)\n"
+                           "- debugOutput: ignored(For FNIS compatibility)\n"
+                           "\n"
+                           "Return\n"
+                           "  -1 => The prefix is not registered."
+                           " 0.. => Found 0-based mod ID"
                            "\n"
                            "Example:\n"
-                           "  [\"aaa\", \"bbb\", \"abc\", \"\"]\n"
-                           "  GetAAmodID(\"abc\") -> 2\n"
-                           "\n"
-                           "Notes:\n"
-                           "  Unused slots in the prefix list contain an empty string (\"\") for FNIS compatibility.";
+                           "[\"aaa\", \"bbb\", \"abc\", \"\"]\n"
+                           "GetAAmodID(\"abc\", \"\", false) -> 2";
                 case Fn::GetGroupBaseValue:
                     return "Returns the base slot assigned to an FNIS AA group.\n"
                            "\n"
-                           "mod_id: 0..29\n"
-                           "group_id: 0..53\n"
+                           "- mod_id: 0..30\n"
+                           "- group_id: 0..54(FNIS_aa group ID, not the set-list index.)\n"
                            "\n"
-                           "Returns 0 when the arguments are out of range or the "
-                           "mod/group pair is not configured.\n"
-                           "\n"
-                           "The group_id is the FNIS alternate-animation group ID, "
-                           "not the set-list index.";
+                           "Return\n"
+                           "0 => Error: The pair is not configured or the arguments are out of range."
+                           "_ => OK: The base slot assigned to the specified mod/group pair.";
                 case Fn::GetAllGroupBaseValues:
                     return "Returns all base slots for one FNIS AA mod.\n"
                            "\n"
-                           "The returned array always contains 54 elements.\n"
-                           "Index = group_id.\n"
-                           "Value = base slot.\n"
-                           "Unconfigured groups contain 0.\n"
+                           "- mod_id: 0..29\n"
                            "\n"
-                           "mod_id must be in the range 0..29.";
+                           "Return\n"
+                           "An array of 54 elements initialized to 0 for FNIS compatibility.\n"
+                           "Each configured set stores its base value at result[group_id].";
                 case Fn::GetInstallationCRC:
-                    return "Returns the FNIS AA installation/layout CRC.\n"
-                           "\n"
-                           "This is the CRC stored in g_config and is also written "
-                           "to the actor graph variables by SetAnimGroup().";
+                    return "Returns the FNIS AA installation/layout CRC stored in config.json.";
                 case Fn::SetAnimGroup:
                 case Fn::SetAnimGroupEX:
-                    return "Sets the FNIS animation-group graph variable on an actor.\n"
+                    return "Sets the FNIS animation-group graph variables on an actor.\n"
                            "\n"
-                           "base > 0: value = base + number\n"
-                           "base <= 0: value = base\n"
+                           "- base: 0..\n"
+                           "- number: 0..9; used only when base > 0\n"
+                           "- skipForce3D: false in SetAnimGroup; configurable in SetAnimGroupEX\n"
                            "\n"
-                           "The value is written to FNISaa<animGroup> and the installation CRC is written to FNISaa_crc and FNISaa<animGroup>_crc.\n"
+                           "Return\n"
+                           "  true  => graph variables were set\n"
+                           "  false => invalid arguments or unavailable actor\n"
                            "\n"
-                           "number must be in the range 0..9.\n"
-                           "\n"
-                           "SetAnimGroupEX additionally accepts skipForce3D. "
-                           "When false, the player is forced into third person.";
+                           "Notes\n"
+                           "- FNISaa<animGroup> = base + number when base > 0; otherwise base.\n"
+                           "- FNISaa_crc and FNISaa<animGroup>_crc are set to the installation CRC.";
                 }
             }
         };
@@ -658,6 +667,8 @@ namespace fnis_aa::menu {
         class FNIS {
         public:
             enum class Fn {
+                set_AACondition,
+                AAReport,
                 IsGenerated,
                 VersionToString,
                 VersionCompare,
@@ -672,6 +683,10 @@ namespace fnis_aa::menu {
 
             static consteval const char* fn_name(Fn fn) noexcept {
                 switch (fn) {
+                case Fn::set_AACondition:
+                    return "set_AACondition";
+                case Fn::AAReport:
+                    return "AAReport";
                 case Fn::IsGenerated:
                     return "IsGenerated";
                 case Fn::VersionToString:
@@ -693,62 +708,92 @@ namespace fnis_aa::menu {
 
             static consteval const char* docs(Fn fn) noexcept {
                 switch (fn) {
+                case Fn::set_AACondition:
+                    return "Sets the AnimVariable used to select an FNIS Alternate Animation.\n"
+                           "\n"
+                           "- aaType: \"mt_loco_forward\" or \"mt_locomotion\"\n"
+                           "- mod: FNIS AA mod name\n"
+                           "- aaCond: 0..10; 0 resets to the default animation\n"
+                           "- aaDebug: debug output level for errors and AnimVar setting reports\n"
+                           "           0 = none, 1 = log, 2 = HUD, 3 = error message box\n"
+                           "\n"
+                           "aaType:\n"
+                           "  mt_loco_forward => FNISvaa1\n"
+                           "  mt_locomotion  => FNISvaa2\n"
+                           "\n"
+                           "Examples:\n"
+                           "  set_AACondition(actor, \"mt_loco_forward\", \"MyMod\", 3, aaDebug)\n"
+                           "    FNISvaa_MyMod = 100 => FNISvaa1 = 103\n"
+                           "  set_AACondition(actor, \"mt_loco_forward\", \"MyMod\", 0, aaDebug)\n"
+                           "    => FNISvaa1 = 0 (default animation)\n"
+                           "\n"
+                           "Return\n"
+                           "  -4 => mod AnimVar is not installed\n"
+                           "  -3 => invalid aaCond\n"
+                           "  -2 => invalid aaType\n"
+                           "  -1 => actor is null or not 3D-loaded\n"
+                           "   0 => AnimVar could not be set\n"
+                           "  >0 => AA condition was set";
+
+                case Fn::AAReport:
+                    return "Reports an FNIS AA message according to AAdebug.\n"
+                           "\n"
+                           "- AAdebug: 0 = none, 1 = log, 2 = HUD, 3 = error message box\n"
+                           "- isError: shows the message box only when true and AAdebug == 3\n"
+                           "\n"
+                           "Notes\n"
+                           "The long report(non empty str) is written to fnis_aa.log instead of Debug.Trace().";
                 case Fn::IsGenerated:
                     return "Reports whether FNIS behavior generation is available.\n"
                            "\n"
-                           "This implementation always returns true because the "
-                           "required FNIS data is provided by the generated JSON.";
+                           "Return\n"
+                           "  true => Always. (FNIS data is provided by generated JSON)";
                 case Fn::VersionToString:
                     return "Returns the configured FNIS version as a string.\n"
                            "\n"
-                           "The FNIS version format is V<DD>.<DD>.<DD>.<D>.\n"
+                           "- abCreature: selects the normal or creature version\n"
                            "\n"
-                           "The version consists of:\n"
-                           "  major  = major version\n"
-                           "  minor1 = first minor version\n"
-                           "  minor2 = second minor version\n"
-                           "  flags  = release state\n"
+                           "Format: V<major>.<minor1>.<minor2>.<flags>\n"
                            "\n"
                            "Flags:\n"
                            "  0 = release\n"
                            "  1 = alpha\n"
                            "  2 = beta\n"
-                           "  3 = invalid or unavailable version\n"
-                           "\n"
-                           "abCreature selects the normal or creature FNIS version.";
+                           "  3 = invalid or unavailable version";
                 case Fn::VersionCompare:
                     return "Compares the configured FNIS version with the specified version.\n"
                            "\n"
-                           "Returns:\n"
+                           "Return\n"
                            "   1: Newer than the specified version.\n"
                            "   0: Match\n"
                            "  -1: Older than the specified version.";
                 case Fn::GetMajor:
                     return "Returns the major component of the configured FNIS version.\n"
                            "\n"
-                           "abCreature selects the normal or creature FNIS version.";
+                           "- abCreature: Selects the normal or creature version.";
                 case Fn::GetMinor1:
                     return "Returns the first minor component of the configured FNIS version.\n"
                            "\n"
-                           "abCreature selects the normal or creature version.";
+                           "- abCreature: Selects the normal or creature version.";
                 case Fn::GetMinor2:
                     return "Returns the second minor component of the configured FNIS version.\n"
                            "\n"
-                           "abCreature selects the normal or creature version.";
+                           "- abCreature: Selects the normal or creature version.";
                 case Fn::GetFlags:
                     return "Returns the release-state flags of the configured FNIS version.\n"
                            "\n"
+                           "- abCreature: Selects the normal or creature version."
+                           "\n"
+                           "Return\n"
                            "  0 = release\n"
                            "  1 = alpha\n"
                            "  2 = beta\n"
-                           "  3 = invalid or unavailable version\n"
-                           "\n"
-                           "abCreature selects the normal or creature FNIS version.";
+                           "  3 = invalid or unavailable version";
                 case Fn::IsRelease:
                     return "Returns true when the selected FNIS version has no flags.\n"
                            "\n"
-                           "Equivalent to:\n"
-                           "  GetFlags(abCreature) == 0";
+                           "Notes\n"
+                           "Equivalent to GetFlags(abCreature) == 0";
                 }
             }
         };
@@ -884,32 +929,24 @@ namespace fnis_aa::menu {
 
         template <typename... Args>
         FFIArgs<Args...> make_ffi_args(Args&&... args) {
-            return {
-                .values = std::tuple{ std::forward<Args>(args)... }
-            };
+            return { .values = std::tuple{ std::forward<Args>(args)... } };
         }
 
         inline FFIIntArgument make_ffi_argument(const char* name, int32_t& value) {
-            return {
-                .label = name,
-                .value = &value,
-            };
+            return { .label = name, .value = &value };
         }
 
         template <std::size_t N>
-        inline FFIStringArgument make_ffi_argument(const char* name, std::array<char, N>& value) {
-            return {
-                .label = name,
-                .value = value.data(),
-                .size = value.size(),
-            };
+        FFIStringArgument make_ffi_argument(const char* name, std::array<char, N>& value) {
+            return { .label = name, .value = value.data(), .size = value.size() };
         }
 
         inline FFIBoolArgument make_ffi_argument(const char* name, bool& value) {
-            return {
-                .label = name,
-                .value = &value,
-            };
+            return { .label = name, .value = &value };
+        }
+
+        inline FFIActorArgument make_ffi_argument(const char* label, RE::Actor*& value) {
+            return { .label = label, .value = &value };
         }
 
 #define FNIS_FFI_MAKE_ARGUMENT(value) make_ffi_argument(#value, value)
@@ -935,11 +972,41 @@ namespace fnis_aa::menu {
         FNIS_FFI_MAKE_ARGUMENT(c),  \
         FNIS_FFI_MAKE_ARGUMENT(d))
 
-#define FNIS_FFI_GET_ARGS_MACRO(_1, _2, _3, _4, NAME, ...) NAME
+#define FNIS_FFI_ARGS_5(a, b, c, d, e) \
+    make_ffi_args(                     \
+        FNIS_FFI_MAKE_ARGUMENT(a),     \
+        FNIS_FFI_MAKE_ARGUMENT(b),     \
+        FNIS_FFI_MAKE_ARGUMENT(c),     \
+        FNIS_FFI_MAKE_ARGUMENT(d),     \
+        FNIS_FFI_MAKE_ARGUMENT(e))
+
+#define FNIS_FFI_ARGS_6(a, b, c, d, e, f) \
+    make_ffi_args(                        \
+        FNIS_FFI_MAKE_ARGUMENT(a),        \
+        FNIS_FFI_MAKE_ARGUMENT(b),        \
+        FNIS_FFI_MAKE_ARGUMENT(c),        \
+        FNIS_FFI_MAKE_ARGUMENT(d),        \
+        FNIS_FFI_MAKE_ARGUMENT(e),        \
+        FNIS_FFI_MAKE_ARGUMENT(f))
+
+#define FNIS_FFI_ARGS_7(a, b, c, d, e, f, g) \
+    make_ffi_args(                           \
+        FNIS_FFI_MAKE_ARGUMENT(a),           \
+        FNIS_FFI_MAKE_ARGUMENT(b),           \
+        FNIS_FFI_MAKE_ARGUMENT(c),           \
+        FNIS_FFI_MAKE_ARGUMENT(d),           \
+        FNIS_FFI_MAKE_ARGUMENT(e),           \
+        FNIS_FFI_MAKE_ARGUMENT(f),           \
+        FNIS_FFI_MAKE_ARGUMENT(g))
+
+#define FNIS_FFI_GET_ARGS_MACRO(_1, _2, _3, _4, _5, _6, _7, NAME, ...) NAME
 
 #define ARGS(...)            \
     FNIS_FFI_GET_ARGS_MACRO( \
         __VA_ARGS__,         \
+        FNIS_FFI_ARGS_7,     \
+        FNIS_FFI_ARGS_6,     \
+        FNIS_FFI_ARGS_5,     \
         FNIS_FFI_ARGS_4,     \
         FNIS_FFI_ARGS_3,     \
         FNIS_FFI_ARGS_2,     \
@@ -975,24 +1042,26 @@ namespace fnis_aa::menu {
         void draw_ffi_signature(const FFIArgs<Args...>& arguments) {
             using Script = FFIFunctionTraits<decltype(Fn)>::script;
 
+            ImGuiMCP::TextUnformatted("(?)");
+            if (ImGuiMCP::IsItemHovered()) {
+                if constexpr (Script::docs(Fn)) {
+                    ImGuiMCP::SetTooltip(Script::docs(Fn));
+                }
+            }
+
+            ImGuiMCP::SameLine();
             color_text(FFIReturnType<Ret>::PAPYRUS_NAME, color::YELLOW);
             ImGuiMCP::SameLine();
             ImGuiMCP::TextUnformatted(Script::SCRIPT_NAME);
-            ImGuiMCP::SameLine(0.0f);
+            ImGuiMCP::SameLine();
             ImGuiMCP::TextUnformatted(".");
-            ImGuiMCP::SameLine(0.0f);
+            ImGuiMCP::SameLine();
             color_text(Script::fn_name(Fn), color::BLUE);
-            if (ImGuiMCP::IsItemHovered()) {
-                if (const char* doc = Script::docs(Fn)) {
-                    ImGuiMCP::SetTooltip(doc);
-                }
-            }
-            ImGuiMCP::SameLine(0.0f);
+
+            ImGuiMCP::SameLine();
             color_text("(", color::BLUE);
-
             std::apply([&](const auto&... args) { draw_ffi_signature_arguments(args...); }, arguments.values);
-
-            ImGuiMCP::SameLine(0.0f);
+            ImGuiMCP::SameLine();
             color_text(")", color::BLUE);
         }
 
@@ -1023,6 +1092,201 @@ namespace fnis_aa::menu {
             ImGuiMCP::Checkbox(std::format("##FNIS_FFI_TEST_{}_{}", test_id, arg.label).c_str(), arg.value);
 
             ImGuiMCP::PopStyleColor();
+        }
+
+        void draw_ffi_argument(std::size_t test_id, const FFIActorArgument& arg) {
+            enum class ActorProcessLevel {
+                High,
+                MiddleHigh,
+                MiddleLow,
+                Low,
+            };
+
+            // NOTE: These static variables are shared between `SetAnimGroup`, `SetAnimGroupEx` and `set_AACondition`,
+            // but that is fine since they are temporary variables used only for the options.
+            static std::vector<RE::BSPointerHandle<RE::Actor>> actors;
+            static bool                                        actors_loaded = false;
+            static std::array<char, 256>                       actor_filter{};
+            static ActorProcessLevel                           actor_process_level = ActorProcessLevel::High;
+
+            auto load_actors = [&]() {
+                actors.clear();
+
+                auto* process = RE::ProcessLists::GetSingleton();
+                if (!process) {
+                    actors_loaded = true;
+                    return;
+                }
+
+                auto collect = [&](auto& arr) {
+                    for (auto& handle : arr) {
+                        auto  ptr = handle.get();
+                        auto* actor = ptr ? ptr->template As<RE::Actor>() : nullptr;
+
+                        if (!actor) {
+                            continue;
+                        }
+
+                        actors.push_back(actor->GetHandle());
+                    }
+                };
+
+                switch (actor_process_level) {
+                case ActorProcessLevel::High:
+                    collect(process->highActorHandles);
+                    break;
+
+                case ActorProcessLevel::MiddleHigh:
+                    collect(process->middleHighActorHandles);
+                    break;
+
+                case ActorProcessLevel::MiddleLow:
+                    collect(process->middleLowActorHandles);
+                    break;
+
+                case ActorProcessLevel::Low:
+                    collect(process->lowActorHandles);
+                    break;
+                }
+
+                actors_loaded = true;
+            };
+
+            // nullable
+            auto matches_filter = [&](RE::Actor* actor) {
+                if (!actor) {
+                    return false;
+                }
+
+                const std::string_view filter(actor_filter.data());
+
+                if (filter.empty()) {
+                    return true;
+                }
+
+                const auto  form_id = std::format("{:08X}", actor->GetFormID());
+                const char* name = actor->GetName();
+
+                if (name && std::string_view(name).find(filter) != std::string_view::npos) {
+                    return true;
+                }
+
+                return form_id.find(filter) != std::string_view::npos;
+            };
+
+            if (!actors_loaded) {
+                load_actors();
+            }
+
+            auto* current = arg.value ? *arg.value : nullptr;
+
+            ImGuiMCP::PushID(static_cast<int>(test_id));
+
+            const char* preview = current && current->GetName() ? current->GetName() : "<null>";
+
+            ImGuiMCP::SetNextItemWidth(160.0f);  // Intended: For combo
+            if (ImGuiMCP::BeginCombo(arg.label, preview)) {
+                const auto get_level_name = [](ActorProcessLevel level) -> const char* {
+                    switch (level) {
+                    case ActorProcessLevel::High:
+                        return "High";
+                    case ActorProcessLevel::MiddleHigh:
+                        return "Middle High";
+                    case ActorProcessLevel::MiddleLow:
+                        return "Middle Low";
+                    case ActorProcessLevel::Low:
+                        return "Low";
+                    }
+
+                    return "Unknown";
+                };
+
+                const char* current_level_name = get_level_name(actor_process_level);
+                ImGuiMCP::SetNextItemWidth(160.0f);  // Intended: For combo
+                if (ImGuiMCP::BeginCombo("Process Level", current_level_name)) {
+                    constexpr std::array<ActorProcessLevel, 4> levels = {
+                        {
+                            ActorProcessLevel::High,
+                            ActorProcessLevel::MiddleHigh,
+                            ActorProcessLevel::MiddleLow,
+                            ActorProcessLevel::Low,
+                        }
+                    };
+
+                    for (const auto level : levels) {
+                        const bool selected = actor_process_level == level;
+                        if (ImGuiMCP::Selectable(get_level_name(level), selected)) {
+                            actor_process_level = level;
+                            actors_loaded = false;
+                        }
+
+                        if (selected) {
+                            ImGuiMCP::SetItemDefaultFocus();
+                        }
+                    }
+
+                    ImGuiMCP::EndCombo();
+                }
+
+                ImGuiMCP::SetNextItemWidth(160.0f);  // Intended: For InputText
+                ImGuiMCP::InputText("Search", actor_filter.data(), actor_filter.size());
+
+                ImGuiMCP::SameLine();
+                if (ImGuiMCP::SmallButton("[R]")) {
+                    actors.clear();
+                    actors_loaded = false;
+                }
+                if (ImGuiMCP::IsItemHovered()) {
+                    ImGuiMCP::SetTooltip("Reload actors");
+                }
+
+                auto* player = RE::PlayerCharacter::GetSingleton();
+                if (player && matches_filter(player)) {
+                    const bool selected = player == current;
+
+                    const auto label = std::format(
+                        "{} (0x{:08X})",
+                        player->GetName() ? player->GetName() : "<unnamed player>",
+                        player->GetFormID());
+
+                    if (ImGuiMCP::Selectable(label.c_str(), selected)) {
+                        *arg.value = player;
+                    }
+
+                    if (selected) {
+                        ImGuiMCP::SetItemDefaultFocus();
+                    }
+                }
+                ImGuiMCP::Separator();
+
+                for (auto& handle : actors) {
+                    auto  ptr = handle.get();
+                    auto* actor = ptr ? ptr->As<RE::Actor>() : nullptr;
+
+                    if (!matches_filter(actor)) {
+                        continue;
+                    }
+
+                    const bool selected = actor == current;
+
+                    const auto label = std::format(
+                        "{} (0x{:08X})",
+                        actor->GetName() ? actor->GetName() : "<unnamed>",
+                        actor->GetFormID());
+
+                    if (ImGuiMCP::Selectable(label.c_str(), selected)) {
+                        *arg.value = actor;
+                    }
+
+                    if (selected) {
+                        ImGuiMCP::SetItemDefaultFocus();
+                    }
+                }
+
+                ImGuiMCP::EndCombo();
+            }
+
+            ImGuiMCP::PopID();
         }
 
         template <class Arg>
@@ -1120,9 +1384,29 @@ namespace fnis_aa::menu {
             // FNIS_aa.pex
             // -----------------------------------------------------------------
 
-            // Skip reason: Need Actor
-            // - FNIS_aa.SetAnimGroup(Actor ac, string animGroup, int base, int number, string mod, bool debugOutput) -> bool
-            // - FNIS_aa.SetAnimGroupEX(Actor ac, string animGroup, int base, int number, string mod, bool debugOutput, bool skipForce3D) -> bool
+            {
+                static RE::Actor*            ac = RE::PlayerCharacter::GetSingleton();
+                static std::array<char, 256> animGroup{};
+                static int32_t               base = 0;
+                static int32_t               number = 0;
+                static std::array<char, 256> mod{};
+                static bool                  debugOutput = false;
+
+                REGISTER_TEST_FN(FNIS_AA::Fn::SetAnimGroup, ARGS(ac, animGroup, base, number, mod, debugOutput), ret<bool>);
+            }
+
+            {
+                static RE::Actor*            ac = RE::PlayerCharacter::GetSingleton();
+                static std::array<char, 256> animGroup{};
+                static int32_t               base = 0;
+                static int32_t               number = 0;
+                static std::array<char, 256> mod{};
+                static bool                  debugOutput = false;
+                static bool                  skipForce3D = false;
+
+                REGISTER_TEST_FN(FNIS_AA::Fn::SetAnimGroupEX, ARGS(ac, animGroup, base, number, mod, debugOutput, skipForce3D), ret<bool>);
+            }
+
             {
                 static std::array<char, 256> myAAprefix{};
                 static std::array<char, 256> mod{};
@@ -1130,6 +1414,7 @@ namespace fnis_aa::menu {
 
                 REGISTER_TEST_FN(FNIS_AA::Fn::GetAAmodID, ARGS(myAAprefix, mod, debugOutput), ret<int32_t>);
             }
+
             {
                 static int32_t               AAmodID = 0;
                 static int32_t               AAgroupID = 0;
@@ -1138,6 +1423,7 @@ namespace fnis_aa::menu {
 
                 REGISTER_TEST_FN(FNIS_AA::Fn::GetGroupBaseValue, ARGS(AAmodID, AAgroupID, mod, debugOutput), ret<int32_t>);
             }
+
             {
                 static int32_t               AAmodID = 0;
                 static std::array<char, 256> mod{};
@@ -1149,6 +1435,7 @@ namespace fnis_aa::menu {
             {
                 REGISTER_TEST_FN(FNIS_AA::Fn::GetInstallationCRC, args0(), ret<int32_t>);
             }
+
             // Skip Reason: output args `GroupId, ModId, Base`
             // - FNIS_aa.GetAAsets(int nSets, int[] GroupId, int[] ModId, int[] Base, int[] Index, string mod, bool debugOutput) -> void
 
@@ -1156,11 +1443,24 @@ namespace fnis_aa::menu {
             // FNIS.pex
             // -----------------------------------------------------------------
 
-            // Skip reason: Need Actor
-            // - FNIS.set_AACondition(Actor ac, string aaType, string mod, int aaCond, int aaDebug) -> int
+            {
+                static RE::Actor*            ac = RE::PlayerCharacter::GetSingleton();
+                static std::array<char, 256> aaType{};
+                static std::array<char, 256> mod{};
+                static int32_t               aaCond = 0;
+                static int32_t               aaDebug = 0;
 
-            // Skip reason: void
-            // - FNIS.AAReport(string longReport, string shortReport, int AAdebug, bool isError) -> void
+                REGISTER_TEST_FN(FNIS::Fn::set_AACondition, ARGS(ac, aaType, mod, aaCond, aaDebug), ret<int32_t>);
+            }
+
+            {
+                static std::array<char, 256> longReport{};
+                static std::array<char, 256> shortReport{};
+                static int32_t               AAdebug = 0;
+                static bool                  isError = false;
+
+                REGISTER_TEST_FN(FNIS::Fn::AAReport, ARGS(longReport, shortReport, AAdebug, isError), ret<void>);
+            }
 
             {
                 REGISTER_TEST_FN(FNIS::Fn::IsGenerated, args0(), ret<bool>);
@@ -1209,6 +1509,7 @@ namespace fnis_aa::menu {
             static constexpr std::array<const char*, 7> LOG_LEVELS = { "trace", "debug", "info", "warn", "error", "critical", "off" };
 
             int current = static_cast<int>(config.log_level);
+            ImGuiMCP::SetNextItemWidth(160.0f);  // Intended: For Combo
             if (ImGuiMCP::Combo("Log Level", &current, LOG_LEVELS.data(), static_cast<int>(LOG_LEVELS.size()))) {
                 config.log_level = static_cast<spdlog::level::level_enum>(current);
                 spdlog::set_level(config.log_level);
@@ -1256,6 +1557,8 @@ namespace fnis_aa::menu {
 
         void __stdcall render_debug_section() {
             draw_log_level(config::g_config);
+            ImGuiMCP::SameLine();
+            ImGuiMCP::Dummy(ImGuiMCP::ImVec2(30.0f, 0.0f));  // Intend: vertical space
             ImGuiMCP::SameLine();
             draw_reload_config();
             ImGuiMCP::Separator();
