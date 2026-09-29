@@ -63,6 +63,7 @@
     "defaultmode",
     "depfiles",
     "fnis",
+    "FNISvaa",
     "headerfiles",
     "includedirs",
     "linkdirs",
@@ -77,6 +78,6 @@
     "steamapps",
     "userenv",
     "vararg",
-    "xmake"
-  ]
+    "xmake",
+  ],
 }
