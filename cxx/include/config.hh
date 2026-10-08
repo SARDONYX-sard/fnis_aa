@@ -171,11 +171,9 @@ namespace fnis_aa::config {
             constexpr const char* INFO_MSG =
                 "config.json not found; using default configuration. "
                 "This is normal without FNIS AA mods (e.g. XPMSE, FNIS Sexy Move). "
-                "If you use FNIS AA mods, run Pandora or d_merge. "
-                "If you have run a compatible patcher and still do not have config.json, "
-                "something may have prevented the patcher from generating it. "
-                "For Pandora, check Engine.log for "
-                "\"[FNISAA > PushAAVars > Added]\".";
+                "If you use FNIS AA mods, run a compatible patcher such as Pandora or d_merge; "
+                "if config.json is still missing afterward, something may have prevented it from being generated. "
+                "For Pandora, check Engine.log for \"[FNISAA > PushAAVars > Added]\".";
             SPDLOG_INFO(INFO_MSG);
 
             g_diagnostics.push_back({
