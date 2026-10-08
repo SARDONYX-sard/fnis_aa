@@ -112,16 +112,36 @@ namespace fnis_aa::menu {
             ImGuiMCP::EndTable();
         }
 
+        /// NOTE: used `config::g_is_using_default_config`
         void draw_overview(const config::Config& config, const std::vector<config::Diagnostic>& diagnostics) {
             static std::string PLUGIN_TITLE = std::format("{} v{}", SECTION_NAME, SKSE::GetPluginVersion().string("."));
             ImGuiMCP::TextUnformatted(PLUGIN_TITLE.c_str());
             ImGuiMCP::Separator();
 
-            const bool has_errors = std::ranges::any_of(diagnostics, [](const config::Diagnostic& diagnostic) {
-                return diagnostic.level == config::DiagnosticLevel::error;
-            });
+            bool has_error = false;
+            bool has_warning = false;
+            bool has_info = false;
+            for (const auto& diagnostic : diagnostics) {
+                switch (diagnostic.level) {
+                case config::DiagnosticLevel::error:
+                    has_error = true;
+                    break;
+                case config::DiagnosticLevel::warning:
+                    has_warning = true;
+                    break;
+                case config::DiagnosticLevel::info:
+                    has_info = true;
+                    break;
+                case config::DiagnosticLevel::success:
+                    break;
+                }
+            }
 
-            const std::string config_status = has_errors ? "Errors detected" : "Loaded";
+            const std::string config_status =
+                has_error                         ? "Errors detected" :
+                config::g_is_using_default_config ? "Using default" :
+                                                    "Loaded";
+
             const std::string mods = std::to_string(config.mod_count);
             const std::string sets = std::to_string(config.set_count);
             const std::string crc = std::format("{}(0x{:08X})", config.crc, config.crc);
@@ -137,10 +157,17 @@ namespace fnis_aa::menu {
             ImGuiMCP::Spacing();
             ImGuiMCP::Separator();
             ImGuiMCP::Spacing();
-            if (has_errors) {
+
+            if (has_error) {
                 draw_status(config::DiagnosticLevel::error, "Configuration contains errors.");
+            } else if (has_warning) {
+                draw_status(config::DiagnosticLevel::warning, "Configuration contains warnings.");
             } else {
                 draw_status(config::DiagnosticLevel::success, "Configuration is valid.");
+            }
+
+            if (has_error || has_warning || has_info || config::g_is_using_default_config) {
+                draw_status(config::DiagnosticLevel::info, "See the Diagnostics tab for details.");
             }
 
             ImGuiMCP::Spacing();
@@ -256,6 +283,7 @@ namespace fnis_aa::menu {
             const bool has_errors = std::ranges::any_of(diagnostics, [](const config::Diagnostic& diagnostic) {
                 return diagnostic.level == config::DiagnosticLevel::error;
             });
+
             if (has_errors) {
                 draw_status(config::DiagnosticLevel::error, "Configuration contains errors.");
             } else if (diagnostics.empty()) {
@@ -287,6 +315,9 @@ namespace fnis_aa::menu {
                 { "Layout CRC", crc },
             });
         }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Papyrus FFI tests
 
         enum class FFITestState {
             idle,
@@ -423,10 +454,6 @@ namespace fnis_aa::menu {
                 return std::format("<unsupported type>: \"{}\"", type_info.TypeAsString());
             }
         }
-
-        // ---------------------------------------------------------------------
-        // FFI test registration DSL
-        // ---------------------------------------------------------------------
 
         struct FFIIntArgument {
             static constexpr const char* PAPYRUS_NAME = "int";

@@ -63,6 +63,7 @@
     "defaultmode",
     "depfiles",
     "fnis",
+    "FNISAA",
     "FNISvaa",
     "headerfiles",
     "includedirs",
@@ -79,5 +80,6 @@
     "userenv",
     "vararg",
     "xmake",
+    "XPMSE",
   ],
 }
