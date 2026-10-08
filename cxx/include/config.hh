@@ -154,6 +154,7 @@ namespace fnis_aa::config {
 
     /// Global cache.
     inline Config g_config;
+    inline bool   g_is_using_default_config = true;
 
     /// Diagnostics produced while loading the global configuration.
     inline std::vector<Diagnostic> g_diagnostics;
@@ -167,10 +168,19 @@ namespace fnis_aa::config {
         std::ifstream f{ CONFIG_PATH };
 
         if (!f.is_open()) {
-            SPDLOG_ERROR("Failed to open config.json. path={}", CONFIG_PATH);
+            constexpr const char* INFO_MSG =
+                "config.json not found; using default configuration. "
+                "This is normal without FNIS AA mods (e.g. XPMSE, FNIS Sexy Move). "
+                "If you use FNIS AA mods, run Pandora or d_merge. "
+                "If you have run a compatible patcher and still do not have config.json, "
+                "something may have prevented the patcher from generating it. "
+                "For Pandora, check Engine.log for "
+                "\"[FNISAA > PushAAVars > Added]\".";
+            SPDLOG_INFO(INFO_MSG);
+
             g_diagnostics.push_back({
-                .level = DiagnosticLevel::error,
-                .message = std::format("Failed to open config.json. path={}", CONFIG_PATH),
+                .level = DiagnosticLevel::info,
+                .message = INFO_MSG,
             });
 
             return;
@@ -194,6 +204,7 @@ namespace fnis_aa::config {
 
         g_config = std::move(result.config);
         g_diagnostics = std::move(result.diagnostics);
+        g_is_using_default_config = false;
     }
 
 #endif
