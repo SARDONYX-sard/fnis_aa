@@ -18,7 +18,7 @@ SKYRIM_DIR = "${game:SkyrimSE}"
 
 # Without `path`, the built-in compiler of papyrus_analyzer is used.
 [compiler]
-path = "${SKYRIM_DIR}/Papyrus Compiler/PapyrusCompiler.exe"
+# path = "${SKYRIM_DIR}/Papyrus Compiler/PapyrusCompiler.exe"
 # Extra arguments passed as is.
 args = []
 
