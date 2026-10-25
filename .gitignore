@@ -8,3 +8,5 @@ build/
 
 skyrimse.ppj
 compile_commands.json
+# Machine specific papyrus.toml values
+papyrus.local.toml

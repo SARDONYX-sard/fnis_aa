@@ -1,3 +1,3 @@
 ScriptName FNISVersionGenerated
 
-String Function Get() Global native
+String Function Get() Global Native

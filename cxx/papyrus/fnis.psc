@@ -1,12 +1,12 @@
-Scriptname FNIS Hidden
-int Function set_AACondition(actor ac, string AAtype, string mod, int AAcond, int AAdebug = 1) global native
-Function AAReport(string longReport, string shortReport, int AAdebug = 0, bool isError = true) global native
-bool function IsGenerated() global native
+ScriptName FNIS Hidden
+Int Function set_AACondition(actor ac, String AAtype, String mod, Int AAcond, Int AAdebug = 1) Global Native
+Function AAReport(String longReport, String shortReport, Int AAdebug = 0, Bool isError = True) Global Native
+Bool Function IsGenerated() Global Native
 
-string function VersionToString(bool abCreature = false) global native
-int function VersionCompare(int iCompMajor, int iCompMinor1, int iCompMinor2, bool abCreature = false) global native
-int function GetMajor(bool abCreature = false) global native
-int function GetMinor1(bool abCreature = false) global native
-int function GetMinor2(bool abCreature = false) global native
-int function GetFlags(bool abCreature = false) global native
-Bool function IsRelease(bool abCreature = false) global native
+String Function VersionToString(Bool abCreature = False) Global Native
+Int Function VersionCompare(Int iCompMajor, Int iCompMinor1, Int iCompMinor2, Bool abCreature = False) Global Native
+Int Function GetMajor(Bool abCreature = False) Global Native
+Int Function GetMinor1(Bool abCreature = False) Global Native
+Int Function GetMinor2(Bool abCreature = False) Global Native
+Int Function GetFlags(Bool abCreature = False) Global Native
+Bool Function IsRelease(Bool abCreature = False) Global Native

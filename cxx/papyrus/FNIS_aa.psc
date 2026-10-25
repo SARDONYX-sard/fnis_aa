@@ -1,282 +1,282 @@
 ScriptName FNIS_aa
 
 ; --- Native functions (C++ / SKSE Plugin) ---
-bool Function SetAnimGroup(actor ac, string animGroup, int base, int number, string mod, bool debugOutput = false) global native
-bool Function SetAnimGroupEX(actor ac, string animGroup, int base, int number, string mod, bool debugOutput = false, bool skipForce3D = false) global native
-int Function GetAAmodID(string myAAprefix, string mod, bool debugOutput = false) global native
-int Function GetGroupBaseValue(int AAmodID, int AAgroupID, string mod, bool debugOutput = false) global native
-int[] Function GetAllGroupBaseValues(int AAmodID, string mod, bool debugOutput = false) global native
-int Function GetInstallationCRC() global native
-Function GetAAsets(int nSets, int[] GroupId, int[] ModId, int[] Base, int[] Index, string mod, bool debugOutput = false) global native
+Bool Function SetAnimGroup(actor ac, String animGroup, Int base, Int number, String mod, Bool debugOutput = False) Global Native
+Bool Function SetAnimGroupEX(actor ac, String animGroup, Int base, Int number, String mod, Bool debugOutput = False, Bool skipForce3D = False) Global Native
+Int Function GetAAmodID(String myAAprefix, String mod, Bool debugOutput = False) Global Native
+Int Function GetGroupBaseValue(Int AAmodID, Int AAgroupID, String mod, Bool debugOutput = False) Global Native
+Int[] Function GetAllGroupBaseValues(Int AAmodID, String mod, Bool debugOutput = False) Global Native
+Int Function GetInstallationCRC() Global Native
+Function GetAAsets(Int nSets, Int[] GroupId, Int[] ModId, Int[] Base, Int[] Index, String mod, Bool debugOutput = False) Global Native
 
 ; --- Group ID Constants ---
 
 ; Return 0
-int Function _mtidle() global
-	return 0
-endFunction
+Int Function _mtidle() Global
+    Return 0
+EndFunction
 
 ; Return 1
-int Function _1hmidle() global
-	return 1
-endFunction
+Int Function _1hmidle() Global
+    Return 1
+EndFunction
 
 ; Return 2
-int Function _2hmidle() global
-	return 2
-endFunction
+Int Function _2hmidle() Global
+    Return 2
+EndFunction
 
 ; Return 3
-int Function _2hwidle() global
-	return 3
-endFunction
+Int Function _2hwidle() Global
+    Return 3
+EndFunction
 
 ; Return 4
-int Function _bowidle() global
-	return 4
-endFunction
+Int Function _bowidle() Global
+    Return 4
+EndFunction
 
 ; Return 5
-int Function _cbowidle() global
-	return 5
-endFunction
+Int Function _cbowidle() Global
+    Return 5
+EndFunction
 
 ; Return 6
-int Function _h2hidle() global
-	return 6
-endFunction
+Int Function _h2hidle() Global
+    Return 6
+EndFunction
 
 ; Return 7
-int Function _magidle() global
-	return 7
-endFunction
+Int Function _magidle() Global
+    Return 7
+EndFunction
 
 ; Return 8
-int Function _sneakidle() global
-	return 8
-endFunction
+Int Function _sneakidle() Global
+    Return 8
+EndFunction
 
 ; Return 9
-int Function _staffidle() global
-	return 9
-endFunction
+Int Function _staffidle() Global
+    Return 9
+EndFunction
 
 ; Return 10
-int Function _mt() global
-	return 10
-endFunction
+Int Function _mt() Global
+    Return 10
+EndFunction
 
 ; Return 11
-int Function _mtx() global
-	return 11
-endFunction
+Int Function _mtx() Global
+    Return 11
+EndFunction
 
 ; Return 12
-int Function _mtturn() global
-	return 12
-endFunction
+Int Function _mtturn() Global
+    Return 12
+EndFunction
 
 ; Return 13
-int Function _1hmmt() global
-	return 13
-endFunction
+Int Function _1hmmt() Global
+    Return 13
+EndFunction
 
 ; Return 14
-int Function _2hmmt() global
-	return 14
-endFunction
+Int Function _2hmmt() Global
+    Return 14
+EndFunction
 
 ; Return 15
-int Function _bowmt() global
-	return 15
-endFunction
+Int Function _bowmt() Global
+    Return 15
+EndFunction
 
 ; Return 16
-int Function _magmt() global
-	return 16
-endFunction
+Int Function _magmt() Global
+    Return 16
+EndFunction
 
 ; Return 17
-int Function _magcastmt() global
-	return 17
-endFunction
+Int Function _magcastmt() Global
+    Return 17
+EndFunction
 
 ; Return 18
-int Function _sneakmt() global
-	return 18
-endFunction
+Int Function _sneakmt() Global
+    Return 18
+EndFunction
 
 ; Return 19
-int Function _1hmatk() global
-	return 19
-endFunction
+Int Function _1hmatk() Global
+    Return 19
+EndFunction
 
 ; Return 20
-int Function _1hmatkpow() global
-	return 20
-endFunction
+Int Function _1hmatkpow() Global
+    Return 20
+EndFunction
 
 ; Return 21
-int Function _1hmblock() global
-	return 21
-endFunction
+Int Function _1hmblock() Global
+    Return 21
+EndFunction
 
 ; Return 22
-int Function _1hmstag() global
-	return 22
-endFunction
+Int Function _1hmstag() Global
+    Return 22
+EndFunction
 
 ; Return 23
-int Function _2hmatk() global
-	return 23
-endFunction
+Int Function _2hmatk() Global
+    Return 23
+EndFunction
 
 ; Return 24
-int Function _2hmatkpow() global
-	return 24
-endFunction
+Int Function _2hmatkpow() Global
+    Return 24
+EndFunction
 
 ; Return 25
-int Function _2hmblock() global
-	return 25
-endFunction
+Int Function _2hmblock() Global
+    Return 25
+EndFunction
 
 ; Return 26
-int Function _2hmstag() global
-	return 26
-endFunction
+Int Function _2hmstag() Global
+    Return 26
+EndFunction
 
 ; Return 27
-int Function _2hwatk() global
-	return 27
-endFunction
+Int Function _2hwatk() Global
+    Return 27
+EndFunction
 
 ; Return 28
-int Function _2hwatkpow() global
-	return 28
-endFunction
+Int Function _2hwatkpow() Global
+    Return 28
+EndFunction
 
 ; Return 29
-int Function _2hwblock() global
-	return 29
-endFunction
+Int Function _2hwblock() Global
+    Return 29
+EndFunction
 
 ; Return 30
-int Function _2hwstag() global
-	return 30
-endFunction
+Int Function _2hwstag() Global
+    Return 30
+EndFunction
 
 ; Return 31
-int Function _bowatk() global
-	return 31
-endFunction
+Int Function _bowatk() Global
+    Return 31
+EndFunction
 
 ; Return 32
-int Function _bowblock() global
-	return 32
-endFunction
+Int Function _bowblock() Global
+    Return 32
+EndFunction
 
 ; Return 33
-int Function _h2hatk() global
-	return 33
-endFunction
+Int Function _h2hatk() Global
+    Return 33
+EndFunction
 
 ; Return 34
-int Function _h2hatkpow() global
-	return 34
-endFunction
+Int Function _h2hatkpow() Global
+    Return 34
+EndFunction
 
 ; Return 35
-int Function _h2hstag() global
-	return 35
-endFunction
+Int Function _h2hstag() Global
+    Return 35
+EndFunction
 
 ; Return 36
-int Function _magatk() global
-	return 36
-endFunction
+Int Function _magatk() Global
+    Return 36
+EndFunction
 
 ; Return 37
-int Function _1hmeqp() global
-	return 37
-endFunction
+Int Function _1hmeqp() Global
+    Return 37
+EndFunction
 
 ; Return 38
-int Function _2hweqp() global
-	return 38
-endFunction
+Int Function _2hweqp() Global
+    Return 38
+EndFunction
 
 ; Return 39
-int Function _2hmeqp() global
-	return 39
-endFunction
+Int Function _2hmeqp() Global
+    Return 39
+EndFunction
 
 ; Return 40
-int Function _axeeqp() global
-	return 40
-endFunction
+Int Function _axeeqp() Global
+    Return 40
+EndFunction
 
 ; Return 41
-int Function _boweqp() global
-	return 41
-endFunction
+Int Function _boweqp() Global
+    Return 41
+EndFunction
 
 ; Return 42
-int Function _cboweqp() global
-	return 42
-endFunction
+Int Function _cboweqp() Global
+    Return 42
+EndFunction
 
 ; Return 43
-int Function _dageqp() global
-	return 43
-endFunction
+Int Function _dageqp() Global
+    Return 43
+EndFunction
 
 ; Return 44
-int Function _h2heqp() global
-	return 44
-endFunction
+Int Function _h2heqp() Global
+    Return 44
+EndFunction
 
 ; Return 45
-int Function _maceqp() global
-	return 45
-endFunction
+Int Function _maceqp() Global
+    Return 45
+EndFunction
 
 ; Return 46
-int Function _mageqp() global
-	return 46
-endFunction
+Int Function _mageqp() Global
+    Return 46
+EndFunction
 
 ; Return 47
-int Function _stfeqp() global
-	return 47
-endFunction
+Int Function _stfeqp() Global
+    Return 47
+EndFunction
 
 ; Return 48
-int Function _shout() global
-	return 48
-endFunction
+Int Function _shout() Global
+    Return 48
+EndFunction
 
 ; Return 49
-int Function _magcon() global
-	return 49
-endFunction
+Int Function _magcon() Global
+    Return 49
+EndFunction
 
 ; Return 50
-int Function _dw() global
-	return 50
-endFunction
+Int Function _dw() Global
+    Return 50
+EndFunction
 
 ; Return 51
-int Function _jump() global
-	return 51
-endFunction
+Int Function _jump() Global
+    Return 51
+EndFunction
 
 ; Return 52
-int Function _sprint() global
-	return 52
-endFunction
+Int Function _sprint() Global
+    Return 52
+EndFunction
 
 ; Return 53
-int Function _shield() global
-	return 53
-endFunction
+Int Function _shield() Global
+    Return 53
+EndFunction

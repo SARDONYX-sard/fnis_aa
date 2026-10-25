@@ -1,0 +1,72 @@
+# config for papyrus_analyzer(https://github.com/SARDONYX-sard/papyrus/releases/tag/0.0.1-dev.653dba8)
+[package]
+name = "fnis_aa"
+version = "0.1.0"
+
+# This file is shared with your team: keep machine specific paths out of it and
+# write them as `${NAME}` variables. A variable is taken from, first wins:
+#   1. the `papyrus.var` editor setting, or `papyrus_analyzer --var NAME=VALUE`
+#   2. `[var]` of papyrus.local.toml next to this file (add it to .gitignore)
+#   3. `[var]` of this file, for values shared by everyone
+# An undefined variable is an error. `${env:NAME}` reads the environment
+# variable NAME, `${workspaceFolder}` is the workspace folder and
+# `${game:SkyrimSE}` (SkyrimLE, SkyrimVR, Enderal, EnderalSE) is the game
+# installation found in the registry. The registry only exists on Windows: on
+# other systems set SKYRIM_DIR in `papyrus.var` or papyrus.local.toml instead.
+[var]
+SKYRIM_DIR = "${game:SkyrimSE}"
+
+# Without `path`, the built-in compiler of papyrus_analyzer is used.
+[compiler]
+path = "${SKYRIM_DIR}/Papyrus Compiler/PapyrusCompiler.exe"
+# Extra arguments passed as is.
+args = []
+
+[build]
+# Directories of the scripts to compile, searched recursively (relative to this file).
+sources = ["${workspaceFolder}/cxx/papyrus"]
+# Where the compiled `.pex` files go, keeping the directory structure of `sources`.
+output = "${workspaceFolder}/cxx/papyrus/prebuilt"
+# Other script sources, in lookup order (after `sources`).
+imports = ["${SKYRIM_DIR}/Data/Scripts/Source"]
+# The flags file (`Hidden`, `Conditional`, ...).
+flags = "${SKYRIM_DIR}/Data/Scripts/Source/TESV_Papyrus_Flags.flg"
+optimize = true
+release = false
+final = false
+quiet = true
+
+# Projects whose sources this one uses (transitively), imported after `sources`.
+[dependencies]
+# MCMHelper = { path = "../MCMHelper" }
+
+# Lint levels: "allow", "warn" or "deny", by lint (`papyrus_analyzer lint --list`),
+# by group (correctness, suspicious, complexity, style, pedantic) or "all".
+[lints]
+complexity = "allow"
+unused-local = "deny"
+
+# Formatter settings. Unset values come from .editorconfig, then from the editor.
+[format]
+indent-style = "space"        # space or tab
+indent-size = 4
+keyword-case = "canonical"    # canonical, preserve, PascalCase, camelCase, lowercase, UPPERCASE
+# max-blank-lines = 1
+newline = "lf"              # auto, lf, crlf
+final-newline = true
+#
+# Spelling of single keywords, winning over keyword-case.
+# [format.keywords]
+# as = "As"
+
+# Several projects in one folder, like Cargo workspaces: in the papyrus.toml of
+# the parent folder. Members inherit these settings; their own values win
+# (imports are appended). Each member sees only its sources, its
+# dependencies and its imports.
+# [workspace]
+# members = ["*"]               # subdirectories with a papyrus.toml, or paths
+# exclude = []
+# [workspace.var]
+# [workspace.build]             # imports, flags, optimize, release, final, quiet
+# [workspace.lints]
+# [workspace.format]
