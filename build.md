@@ -2,7 +2,6 @@
 
 ## Requirements
 
-- Rust: >= v1.91
 - MSVC
 - xmake: >= 3.0.6
 - Papyrus Compiler (optional — only needed to regenerate prebuilt `.pex` files)
@@ -19,13 +18,13 @@ git submodule update --init --recursive --depth=1
 2.build
 
 ```shell
-cargo build --release;xmake build -y fnis_aa
+xmake build -y fnis_aa
 ```
 
 or
 
 ```shell
-cargo build --release;xmake build -y fnis_aa && xmake install -o "D:\GAME\ModOrganizer Skyrim SE\mods\Dyn FNIS AA Functions" fnis_aa
+xmake build -y fnis_aa && xmake install -o "D:\GAME\ModOrganizer Skyrim SE\mods\Dyn FNIS AA Functions" fnis_aa
 ```
 
 ## Install

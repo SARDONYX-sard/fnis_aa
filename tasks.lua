@@ -1,13 +1,12 @@
 task("build-all", function()
     on_run(function()
         os.exec("git submodule update --init --recursive --depth=1")
-        os.exec("cargo build --release")
         os.exec("xmake build -y fnis_aa")
     end)
 
     set_menu({
         usage = "xmake build",
-        description = "Build Rust project and fnis_aa",
+        description = "Build fnis_aa",
     })
 end)
 
@@ -16,7 +15,6 @@ task("deploy", function()
     local output_dir = os.getenv("OUTPUT_DIR") or DEFAULT_OUTPUT_DIR
 
     on_run(function()
-        os.exec("cargo build --release")
         os.exec("xmake build -y fnis_aa")
         os.exec([[xmake install -o "]] .. output_dir .. [[" fnis_aa]])
     end)

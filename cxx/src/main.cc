@@ -1,22 +1,5 @@
-#include <bridge/src/bridge.rs.h>
-
 #include "config.hh"
 #include "fnis_aa.hh"
-
-namespace {
-    void SkseListener(SKSE::MessagingInterface::Message* a_msg) {
-        switch (a_msg->type) {
-        case SKSE::MessagingInterface::kPostLoadGame:  // Fired after loading a game save.
-            {
-                fnis_aa::bridge::init();
-                return;
-            }
-
-        default:
-            return;
-        }
-    }
-}
 
 extern "C" __declspec(dllexport) bool SKSEPlugin_Load(const SKSE::LoadInterface* a_interface) {
     SKSE::Init(a_interface);
@@ -36,7 +19,6 @@ extern "C" __declspec(dllexport) bool SKSEPlugin_Load(const SKSE::LoadInterface*
 
     fnis_aa::config::LoadGlobalConfig();
 
-    msg->RegisterListener("SKSE", ::SkseListener);
     SKSE::GetPapyrusInterface()->Register(
         fnis_aa::FNIS_aa2::Register,
         fnis_aa::FNIS_aa::Register,

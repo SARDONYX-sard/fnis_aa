@@ -3,7 +3,6 @@
     "dylan23691.toml-analyzer",
     "editorconfig.editorconfig",
     "llvm-vs-code-extensions.vscode-clangd",
-    "rust-lang.rust-analyzer",
     "streetsidesoftware.code-spell-checker",
     "tboox.xmake-vscode"
   ]

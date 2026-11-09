@@ -24,14 +24,6 @@ jobs:
           actions-cache-folder: ".xmake-cache"
           actions-cache-key: ${{ runner.os }}-xmake-build-cache-
 
-      - name: Setup environment
-        uses: ./.github/actions/setup-deps
-        with:
-          platform: ${{ matrix.platform }}
-          build_profile: release
-      - name: build Rust static lib
-        run: cargo build --release
-
       - name: Extract plugin info from xmake.lua
         id: plugin
         shell: pwsh
