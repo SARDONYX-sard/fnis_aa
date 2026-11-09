@@ -9,5 +9,6 @@
     "**/.xmake/**": true,
     "**/build/**": true
   },
-  "cmake.ignoreCMakeListsMissing": true
+  "cmake.ignoreCMakeListsMissing": true,
+  "toml.formatter.alignEntries": true
 }

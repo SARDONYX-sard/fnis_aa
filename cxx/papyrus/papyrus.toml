@@ -1,0 +1,30 @@
+# config for papyrus_analyzer(https://github.com/SARDONYX-sard/papyrus_analyzer)
+"$schema" = "https://raw.githubusercontent.com/SARDONYX-sard/papyrus_analyzer/refs/tags/0.4.0/schemas/papyrus.schema.json"
+
+[package]
+name    = "fnis_aa"
+version = "0.0.0"
+
+[var]
+SKYRIM_DIR = "${game:SkyrimSE}"
+
+[build]
+sources  = ["${workspaceFolder}/cxx/papyrus"]
+output   = "${workspaceFolder}/cxx/papyrus/prebuilt"
+imports  = ["${SKYRIM_DIR}/Data/Scripts/Source"]
+flags    = "${SKYRIM_DIR}/Data/Scripts/Source/TESV_Papyrus_Flags.flg"
+optimize = true
+release  = true
+final    = false
+quiet    = true
+
+[workspace.lints]
+complexity = "allow"
+suspicious = "deny"
+
+[workspace.format]
+indent-style  = "space"
+indent-size   = 4
+keyword-case  = "canonical"
+newline       = "lf"
+final-newline = true
