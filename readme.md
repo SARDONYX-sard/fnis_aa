@@ -12,7 +12,6 @@ This will be useful for users who are using the Patching Tool and FNIS AA mods s
 - Skyrim Special Edition / VR
 - [SKSE64](https://skse.silverlock.org/)
 - [Address Library for SKSE Plugins](https://www.nexusmods.com/skyrimspecialedition/mods/32444)
-
 - Patchers (such as [Pandora](https://www.nexusmods.com/skyrimspecialedition/mods/133232) or [d_merge](https://www.nexusmods.com/skyrimspecialedition/mods/152190)) that meet the following criteria:
   - Addition of the FNIS_aa variable
   - Output of a config.json file for fnis_aa

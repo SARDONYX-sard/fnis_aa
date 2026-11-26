@@ -1,4 +1,11 @@
 {
+  "cmake.ignoreCMakeListsMissing": true,
+  "files.associations": {
+    "**/cxx/xmake.lua": "xmake",
+    "**/extern/CommonLibSSE_NG/xmake.lua": "xmake",
+    "**/extern/SKSEMenuFramework/xmake.lua": "xmake",
+    "**/tasks.lua": "xmake"
+  },
   "files.exclude": {
     ".cache": true
     // ".xmake": true
@@ -9,6 +16,12 @@
     "**/.xmake/**": true,
     "**/build/**": true
   },
-  "cmake.ignoreCMakeListsMissing": true,
+  "Lua.workspace.ignoreDir": [
+    "xmake.lua",
+    "/cxx/xmake.lua",
+    "/extern/CommonLibSSE_NG/xmake.lua",
+    "/extern/SKSEMenuFramework/xmake.lua",
+    "/tasks.lua"
+  ],
   "toml.formatter.alignEntries": true
 }

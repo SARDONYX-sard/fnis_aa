@@ -27,9 +27,9 @@ target(PLUGIN_NAME, function ()
     add_files("src/**.cc")
 
     -- SKSEMenuFramework.h warn
-    add_cxxflags("/wd5054", { tools = "cl" })
+    add_cxxflags("/wd5054", {tools = "cl"})
     add_cxxflags("cl::/Zc:char8_t")
-    add_cxxflags("clang-cl::/Zc:char8_t")
+    add_cxxflags("clang_cl::/Zc:char8_t")
 
     -- This setting automatically creates `SKSE/Plugins/<target_NAME>.dll` during `xmake install`.
     add_rules("commonlibsse-ng.plugin", {
@@ -51,22 +51,22 @@ target(PLUGIN_NAME, function ()
     end)
 end)
 
-target("regenerate_pex", function()
+target("regenerate_pex", function ()
     set_kind("phony")
     on_build(function (target)
-        local skyrim_dir  = os.getenv("SKYRIM_DIR") or "D:/STEAM/steamapps/common/Skyrim Special Edition"
-        local compiler    = path.join(skyrim_dir, "Papyrus Compiler/PapyrusCompiler.exe")
+        local skyrim_dir = os.getenv("SKYRIM_DIR") or "D:/STEAM/steamapps/common/Skyrim Special Edition"
+        local compiler = path.join(skyrim_dir, "Papyrus Compiler/PapyrusCompiler.exe")
         local skse_source = path.join(skyrim_dir, "Data/Scripts/Source")
-        local flags_file  = path.join(skse_source, "TESV_Papyrus_Flags.flg")
-        local src_dir     = path.join(os.scriptdir(), "papyrus")
-        local dst_dir     = path.join(os.scriptdir(), "papyrus/prebuilt")
+        local flags_file = path.join(skse_source, "TESV_Papyrus_Flags.flg")
+        local src_dir = path.join(os.scriptdir(), "papyrus")
+        local dst_dir = path.join(os.scriptdir(), "papyrus/prebuilt")
 
         if not os.isdir(skse_source) then
-            print("[error] Non exits scripts dir: " .. skse_source)
+            raise("[error] Non exits scripts dir: " .. skse_source)
         end
 
         if not os.isfile(compiler) then
-            print("[error] Papyrus compiler not found at: " .. compiler)
+            raise("[error] Papyrus compiler not found at: " .. compiler)
         end
 
         os.mkdir(dst_dir)
@@ -87,7 +87,7 @@ target("regenerate_pex", function()
             })
 
             if not ok then
-                print("[error] Papyrus compilation failed for " .. psc .. ": " .. tostring(err))
+                raise("[error] Papyrus compilation failed for " .. psc .. ": " .. tostring(err))
             end
 
             local dst_pex = path.join(dst_dir, file_name:gsub("%.psc$", ".pex"))
@@ -98,8 +98,8 @@ end)
 
 add_requires("catch2 3.13.0") -- For testing
 
-target("test_fnis_aa", function()
-    set_default(false)  -- To exclude `xmake build`
+target("test_fnis_aa", function ()
+    set_default(false) -- To exclude `xmake build`
     set_kind("binary")
     add_packages("catch2", "nlohmann_json", "spdlog")
 
@@ -112,8 +112,5 @@ target("test_fnis_aa", function()
     add_files("tests/test_config.cc")
 
     -- xmake test
-    add_tests("config", {
-        run_timeout = 10000,
-        trim_output = false
-    })
+    add_tests("config", {timeout = 20 * 1000, trim_output = false})
 end)

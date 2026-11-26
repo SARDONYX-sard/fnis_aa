@@ -1,5 +1,5 @@
-task("build-all", function()
-    on_run(function()
+task("build-all", function ()
+    on_run(function ()
         os.exec("git submodule update --init --recursive --depth=1")
         os.exec("xmake build -y fnis_aa")
     end)
@@ -10,11 +10,11 @@ task("build-all", function()
     })
 end)
 
-task("deploy", function()
+task("deploy", function ()
     local DEFAULT_OUTPUT_DIR <const> = [[D:\GAME\ModOrganizer Skyrim SE\mods\Dyn FNIS AA Functions]]
     local output_dir = os.getenv("OUTPUT_DIR") or DEFAULT_OUTPUT_DIR
 
-    on_run(function()
+    on_run(function ()
         os.exec("xmake build -y fnis_aa")
         os.exec([[xmake install -o "]] .. output_dir .. [[" fnis_aa]])
     end)
@@ -25,8 +25,8 @@ task("deploy", function()
     })
 end)
 
-task("update-submodules", function()
-    on_run(function()
+task("update-submodules", function ()
+    on_run(function ()
         os.exec("git submodule update --init --remote")
     end)
 
@@ -36,8 +36,8 @@ task("update-submodules", function()
     })
 end)
 
-task("lsp", function()
-    on_run(function()
+task("lsp", function ()
+    on_run(function ()
         os.exec("xmake project -k compile_commands --lsp=clangd --outputdir=.vscode -y")
     end)
 
