@@ -1,5 +1,5 @@
 CompileFlags:
-  CompilationDatabase: ".vscode"
+  CompilationDatabase: "build"
   Add:
     # See: https://github.com/llvm/llvm-project/pull/160030/changes
     - "/std:c++latest"
@@ -32,6 +32,7 @@ Diagnostics:
         cppcoreguidelines-narrowing-conversions, # duplicated bugprone lint
         cppcoreguidelines-owning-memory, # In Skyrim, there are times when a memory leak is necessary.
         cppcoreguidelines-pro-type-reinterpret-cast,
+        cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
         cppcoreguidelines-pro-type-vararg,
         misc-no-recursion,
         misc-non-private-member-variables-in-classes,
