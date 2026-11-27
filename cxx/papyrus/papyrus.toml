@@ -1,5 +1,5 @@
 # config for papyrus_analyzer(https://github.com/SARDONYX-sard/papyrus_analyzer)
-"$schema" = "https://raw.githubusercontent.com/SARDONYX-sard/papyrus_analyzer/refs/tags/0.4.0/schemas/papyrus.schema.json"
+"$schema" = "https://raw.githubusercontent.com/SARDONYX-sard/papyrus_analyzer/refs/tags/0.6.0/schemas/papyrus.schema.json"
 
 [package]
 name    = "fnis_aa"
@@ -17,6 +17,12 @@ optimize = true
 release  = true
 final    = false
 quiet    = true
+
+[build.header]
+user        = "SARDONYX"
+computer    = "SARDONYX"
+time        = "2026-11-27T12:00:00Z"
+source-time = 0
 
 [workspace.lints]
 complexity = "allow"

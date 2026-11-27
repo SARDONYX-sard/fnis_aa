@@ -445,7 +445,7 @@ namespace fnis_aa::menu {
                         result += "...";
                     }
 
-                    result += "]";
+                    result += ']';
 
                     return result;
                 }

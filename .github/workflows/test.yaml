@@ -15,28 +15,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-xmake
+        id: xmake
         with:
-          submodules: "recursive"
+          cache-key: test
 
-      - uses: xmake-io/github-action-setup-xmake@v1
-        with:
-          xmake-version: "3.0.6"
-          actions-cache-folder: ".xmake-cache"
-          actions-cache-key: ${{ runner.os }}-xmake-build-cache-
-
-      - name: Extract plugin info from xmake.lua
-        id: plugin
-        shell: pwsh
-        run: |
-          $content = Get-Content cxx/xmake.lua -Raw
-          $pattern = 'local\s+PLUGIN_NAME<[^>]*>\s*=\s*"([^"]+)"'
-
-          if ($content -match $pattern) {
-            "PLUGIN_NAME=$($matches[1])" >> $env:GITHUB_OUTPUT
-          } else {
-            Write-Error "PLUGIN_NAME not found in cxx/xmake.lua"
-            exit 1
-          }
-
-      - name: Build
-        run: xmake run -y test_fnis_aa
+      - name: Test
+        run: xmake test

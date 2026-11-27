@@ -1,9 +1,9 @@
 {
+  "clangd.arguments": ["--compile-commands-dir=${workspaceFolder}/build"],
   "cmake.ignoreCMakeListsMissing": true,
   "files.associations": {
+    "**/*.lua": "xmake",
     "**/cxx/xmake.lua": "xmake",
-    "**/extern/CommonLibSSE_NG/xmake.lua": "xmake",
-    "**/extern/SKSEMenuFramework/xmake.lua": "xmake",
     "**/tasks.lua": "xmake"
   },
   "files.exclude": {
@@ -19,9 +19,8 @@
   "Lua.workspace.ignoreDir": [
     "xmake.lua",
     "/cxx/xmake.lua",
-    "/extern/CommonLibSSE_NG/xmake.lua",
-    "/extern/SKSEMenuFramework/xmake.lua",
-    "/tasks.lua"
+    "/tasks.lua",
+    "/**/*.lua"
   ],
   "toml.formatter.alignEntries": true
 }

@@ -13,39 +13,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7.0.1
+
+      - uses: ./.github/actions/setup-xmake
+        id: xmake
         with:
-          submodules: "recursive"
+          cache-key: release
+          plugin-name: true
 
-      - uses: xmake-io/github-action-setup-xmake@v1
-        with:
-          xmake-version: "3.0.6"
-          actions-cache-folder: ".xmake-cache"
-          actions-cache-key: ${{ runner.os }}-xmake-release-cache-
-
-      - name: Extract plugin info from xmake.lua
-        id: plugin
-        shell: pwsh
-        run: |
-          $content = Get-Content cxx/xmake.lua -Raw
-          $pattern = 'local\s+PLUGIN_NAME<[^>]*>\s*=\s*"([^"]+)"'
-
-          if ($content -match $pattern) {
-            "PLUGIN_NAME=$($matches[1])" >> $env:GITHUB_OUTPUT
-          } else {
-            Write-Error "PLUGIN_NAME not found in cxx/xmake.lua"
-            exit 1
-          }
-
-      - name: Build
-        run: xmake build -y ${{ steps.plugin.outputs.PLUGIN_NAME }}
-      - name: Install
-        run: xmake install -o ./build/artifact ${{ steps.plugin.outputs.PLUGIN_NAME }}
-
-      - name: Package artifact
-        shell: pwsh
-        run: |
-          $name = "${{ steps.plugin.outputs.PLUGIN_NAME }}"
-          Compress-Archive -Path ./build/artifact/* -DestinationPath "$name-windows.zip"
+      # Build, install and zip as build/<plugin>-windows.zip
+      - name: Build release zip
+        run: xmake release-zip
 
       - name: Create GitHub Release (gh)
         env:
@@ -53,6 +30,6 @@ jobs:
         run: |
           gh release create `
             "${{ github.ref_name }}" `
-            "${{ steps.plugin.outputs.PLUGIN_NAME }}-windows.zip" `
-            --title "${{ steps.plugin.outputs.PLUGIN_NAME }} ${{ github.ref_name }}" `
+            "build/${{ steps.xmake.outputs.plugin-name }}-windows.zip" `
+            --title "${{ steps.xmake.outputs.plugin-name }} ${{ github.ref_name }}" `
             --generate-notes
