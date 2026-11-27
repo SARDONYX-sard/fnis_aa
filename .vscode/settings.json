@@ -17,10 +17,10 @@
     "**/build/**": true
   },
   "Lua.workspace.ignoreDir": [
-    "xmake.lua",
+    "/**/*.lua",
     "/cxx/xmake.lua",
     "/tasks.lua",
-    "/**/*.lua"
+    "xmake.lua"
   ],
   "toml.formatter.alignEntries": true
 }
